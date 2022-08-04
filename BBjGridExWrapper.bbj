@@ -1,0 +1,61 @@
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use com.basiscomponents.db.ResultSet
+use com.basiscomponents.db.DataRow
+
+class public BBjGridExWrapper
+
+    field private BBjGridExWidget gridex!
+    field private ResultSet rs! = new ResultSet()
+    field private DataRow rec! = new DataRow()
+    field public BBjNumber NumRows
+    field public BBjNumber NumColumns
+    
+    method private BBjGridExWrapper()
+    methodend
+    
+    method public BBjGridExWrapper(BBjGridExWidget theGrid!)
+        #gridex! = theGrid!
+    methodend
+    
+    method public void setCellText(BBjNumber row, BBjNumber col, BBjVector v!)
+        #checkAndAdjustDimension()
+        
+        r=row
+        c=col
+        it! = v!.iterator()
+        while it!.hasNext()
+            val! = it!.next()
+            #rs!.get(r).setFieldValue("C"+str(c),val!)
+            c=c+1
+            if c>#NumColumns-1 then
+                c=0
+                r=r+1
+                if r>#NumRows-1 then
+                    break
+                fi
+            fi
+        wend
+        #gridex!.setData(#rs!)
+    methodend
+    
+    method private void checkAndAdjustDimension()
+        if #rec!.getColumnCount() < #NumColumns then
+            #rec! = new DataRow()
+            for i=0 to #NumColumns-1
+                #rec!.setFieldValue("C"+str(i),"")
+            next
+        fi
+        if #rs!.size()>#NumRows then
+            for i=#NumRows to #rs!.size()-1
+                #rs!.remove(#rs!.size())
+            next
+        else
+            while #rs!.size()<#NumRows
+                #rs!.add(#rec!.clone())
+            wend
+        fi
+
+    
+    methodend
+
+classend

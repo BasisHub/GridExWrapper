@@ -1,0 +1,53 @@
+enter
+
+sqlopen (1)"CDStore"
+sqlprep (1)"GET TABLE INFO FOR CDINVENTORY"
+sqlexec (1)
+dim inf$:sqltmpl(1)
+inf$=sqlfetch(1)
+sqlclose (1)
+
+ch=unt
+open (ch)inf.filename$
+dim rec$:inf.template$
+grid_vec! = new BBjVector()
+while 1
+    read record (ch,end=*break)rec$
+    grid_vec!.addItem(rec.cdnumber$)
+    grid_vec!.addItem(rec.title$)
+    grid_vec!.addItem(rec.artist$)
+    grid_vec!.addItem(rec.label$)
+    grid_vec!.addItem(rec.playingtime$)
+    grid_vec!.addItem(rec.recordingtype$)
+    grid_vec!.addItem(rec.musictype$)
+    grid_vec!.addItem(rec.binlocation$)
+    grid_vec!.addItem(rec.numberoftracks$)
+    grid_vec!.addItem(rec.onhand$)
+    grid_vec!.addItem(str(rec.cost:"####0.00"))
+    grid_vec!.addItem(str(rec.retail:"####0.00"))
+    rowcount=rowcount+1
+wend
+
+grid!.setNumColumns(12)
+grid!.setNumRows(rowcount)
+grid!.setCellText(0,0,grid_vec!)
+
+REM head_vec! = new BBjVector()
+REM head_vec!.addItem("CD Number")
+REM head_vec!.addItem("Title")
+REM head_vec!.addItem("Artist")
+REM head_vec!.addItem("Label")
+REM head_vec!.addItem("Playing Time")
+REM head_vec!.addItem("Quality")
+REM head_vec!.addItem("Musictype")
+REM head_vec!.addItem("Bin")
+REM head_vec!.addItem("Tracks")
+REM head_vec!.addItem("Stock")
+REM head_vec!.addItem("Cost")
+REM head_vec!.addItem("Retail")
+REM grid!.setHasColumnHeader(1)
+REM grid!.setColumnHeaderText(head_vec!)
+REM grid!.setVerticalScrollable(1)
+REM grid!.setHorizontalScrollable(1)
+REM grid!.setSelectionMode(grid!.GRID_SELECT_ROW)
+REM grid!.deselectAllCells()
