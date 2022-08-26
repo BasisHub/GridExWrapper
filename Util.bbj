@@ -1,0 +1,50 @@
+
+class public Util
+
+    method public static String converRgbToHex(BBjColor color!)
+
+        green! = color!.getGreen()
+        blue! = color!.getBlue()
+        red! = color!.getRed()
+        
+        hex! = "#"
+
+        rest! = mod(red!,16)
+        red! = red! - rest!
+        result! = red! / 16
+        
+        hex! = hex! + #checkNumber(result!)
+        hex! = hex! + #checkNumber(rest!)
+
+        rest! = mod(green!,16)
+        green! = green! - rest!
+        result! = green! / 16
+        
+        hex! = hex! + #checkNumber(result!)
+        hex! = hex! + #checkNumber(rest!)
+
+        rest! = mod(blue!,16)
+        blue! = blue! - rest!
+        result! = blue! / 16
+        
+        hex! = hex! + #checkNumber(result!)
+        hex! = hex! + #checkNumber(rest!)
+
+        methodret hex!
+    methodend
+
+
+    method public static String checkNumber(BBjNumber number!)
+        if number! <= 9 then methodret str(number!)
+
+        switch(number!)
+            case 10; methodret "A"
+            case 11; methodret "B"
+            case 12; methodret "C"
+            case 13; methodret "D"
+            case 14; methodret "E"
+            case 15; methodret "F"
+        swend
+    methodend
+
+classend

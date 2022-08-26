@@ -1,0 +1,283 @@
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use ::BBjGridExWrapper.bbj::BBjGridExWrapper
+REM Create a calendar using a BBjGrid object
+
+REM Obtain the instance of the BBjAPI object
+LET myAPI!=BBjAPI()
+
+REM Open the SysGui device
+SYSGUI=UNT
+OPEN (SYSGUI) "X0"
+
+REM Obtain the instance of the BBjSysGui object
+LET mySysGui!=myAPI!.getSysGui()
+
+REM Create the main window and control objects
+GOSUB CreateCalendar
+
+REM Display the initial data
+GOSUB DisplayMonth
+
+REM Display the main window
+MainWindow!.setVisible(mySysGui!.TRUE)
+
+REM Register the CALLBACK routines
+declare BBjNumber calendarID!
+calendarID! = 1002
+CALLBACK(ON_TOOL_BUTTON_PUSH,DoForwardMonth,CalendarContext,myFwdMonth!.getID())
+CALLBACK(ON_TOOL_BUTTON_PUSH,DoForwardYear,CalendarContext,myFwdYear!.getID())
+CALLBACK(ON_TOOL_BUTTON_PUSH,DoBackMonth,CalendarContext,myBackMonth!.getID())
+CALLBACK(ON_TOOL_BUTTON_PUSH,DoBackYear,CalendarContext,myBackYear!.getID())
+rem CALLBACK(ON_GRID_DOUBLE_CLICK,DoSelectDay,CalendarContext,calendarID!); rem Calendar!.getID() 
+rem CALLBACK(ON_GRID_MOUSE_DOWN,DoHighlightDay,CalendarContext,calendarID!); rem Calendar!.getID()
+CALLBACK(ON_CLOSE,DoAppClose,CalendarContext)
+
+REM Process Events
+PROCESS_EVENTS
+
+REM Callback routine called when the user closes the application window
+DoAppClose:
+RELEASE
+RETURN
+
+REM Callback routine called when the user selects the back year button
+DoBackYear:
+LET CurrentYear=CurrentYear-1
+GOSUB DisplayMonth
+RETURN
+
+REM Callback routine called when the user selects the back month button
+DoBackMonth:
+LET CurrentMonth=CurrentMonth-1
+IF CurrentMonth<1 THEN
+      LET CurrentMonth=12
+      LET CurrentYear=CurrentYear-1
+FI
+GOSUB DisplayMonth
+RETURN
+
+REM Callback routine called when the user selects the forward month button
+DoForwardMonth:
+LET CurrentMonth=CurrentMonth+1
+IF CurrentMonth>12 THEN
+      LET CurrentMonth=1
+      LET CurrentYear=CurrentYear+1
+FI
+GOSUB DisplayMonth
+RETURN
+
+REM Callback routine called when the user selects the forward year button
+DoForwardYear:
+LET CurrentYear=CurrentYear+1
+GOSUB DisplayMonth
+RETURN
+
+REM Subroutine called to display the days in the current month/year
+DoSelectDay:
+LET CurrRow=Calendar!.getSelectedRow()
+LET CurrCol=Calendar!.getSelectedColumn()
+GOSUB DoCalcCurrJul
+LET answer=MSGBOX("You have selected "+DATE(CurrentJul:dateMask$),0,TITLE$)
+RETURN
+
+DoHighlightDay:
+EVENT$=mySysGui!.getLastEventString()
+LET GENERIC$=NOTICE(SYSGUI,EVENT.X%)
+DIM NOTICE$:NOTICETPL(GENERIC.OBJTYPE%,EVENT.FLAGS%)
+LET NOTICE$=GENERIC$
+LET CurrRow=NOTICE.ROW
+LET CurrCol=NOTICE.COL
+GOSUB DoCalcCurrJul
+Calendar!.setSelectedCell(CurrRow,CurrCol)
+RETURN
+
+REM Subroutine called to display the days in the current selected month/year
+DisplayMonth:
+LET DayNum=0
+LET FirstDayOfMonth=DayTable!.get(DATE(JUL(CurrentYear,CurrentMonth,1):"%Ds"))
+LET DaysInMonth=FNDaysInMonth(CurrentYear,CurrentMonth)
+MonthVector!.clear()
+IF CurrentDay>DaysInMonth+1 THEN
+      CurrentDay=DaysInMonth+1
+FI
+LET CurrentJul=JUL(CurrentYear,CurrentMonth,CurrentDay)
+
+REM Week 0
+FOR DayOfWeek=0 TO 6
+      IF FirstDayOfMonth>DayOfWeek THEN
+         LET Item$=STR(0:DayMask$)
+      ELSE
+         LET Item$=STR(DayNum+1:DayMask$)
+         LET DayNum=DayNum+1
+      FI
+      MonthVector!.addItem(Item$)
+NEXT DayOfWeek
+
+REM Week 1-3
+FOR Week=1 TO 3
+      FOR DayOfWeek=0 TO 6
+         LET Item$=STR(DayNum+1:DayMask$)
+         LET DayNum=DayNum+1
+      MonthVector!.addItem(Item$)
+   NEXT DayOfWeek
+NEXT Week
+
+REM Week 4-5
+FOR week=4 TO 5
+      FOR DayOfWeek=0 TO 6
+         IF DayNum>DaysInMonth THEN
+            LET Item$=STR(0:DayMask$)
+         ELSE
+            LET Item$=STR(DayNum+1:DayMask$)
+            LET DayNum=DayNum+1
+         FI
+         MonthVector!.addItem(Item$)
+   NEXT DayOfWeek
+NEXT week
+
+REM Set the current information
+Calendar!.setCellText(MonthVector!)
+LET CurrRow=INT((FirstDayOfMonth+CurrentDay-1)/7)
+LET CurrCol=MOD(FirstDayOfMonth+CurrentDay-1,7)
+Calendar!.setSelectedCell(CurrRow,CurrCol)
+LET CurrentMonthYear$=DATE(CurrentJul:"%Ml %Y")
+CurrDate!.setText(CurrentMonthYear$)
+Calendar!.setCellText(5,5," To")
+Calendar!.setCellText(5,6,"day ")
+RETURN
+
+REM Subroutine called to calculate the current jullian day
+DoCalcCurrJul:
+IF CurrRow=5 AND CurrCol>4 THEN
+      LET CurrentJul=0
+   ELSE
+      LET CurrentDay=NUM(Calendar!.getCellText(CurrRow,CurrCol))
+      IF CurrentDay>0 THEN
+         LET CurrentJul=JUL(CurrentYear,CurrentMonth,CurrentDay)
+   FI
+FI
+RETURN
+
+REM Function called to return the number of days in the passed year and month
+DEF FNDaysInMonth(fYear,fMonth)
+rem calculate the number of days in a month - zero based
+LET DaysInMonth=30
+IF fMonth<>12 THEN
+      LET DaysInMonth=NUM(DATE(JUL(fYear,fMonth+1,1)-1:"%D"))-1
+FI
+RETURN DaysInMonth
+FNEND
+
+REM Subroutine called to create the calendar
+CreateCalendar:
+REM Create the vector to hold month info
+LET MonthVector!=mySysGui!.makeVector()
+
+REM Create a java hash table to hold day names
+LET DayTable!=new java.util.Hashtable()
+
+REM Get standard date info from the STRING table
+DIM DateInfo$:"Mask:C(32*=0),SM[12]:C(3*=0),M[12]:C(32*=0),SD[7]:C(3*=0),D[7]:C(32*=0)"
+LET DateInfo$=STBL("!DATE")
+
+REM Build the masks for the dates
+LET dateMask$=DateInfo.Mask$
+LET M=POS("%M"=dateMask$),dateMask$=dateMask$(1,M+1)+"l"+dateMask$(M+3)
+LET M=POS("%Y"=dateMask$),dateMask$=dateMask$(1,M+1)+dateMask$(M+3)
+WHILE POS("/"=dateMask$)
+      LET M=POS("/"=dateMask$),dateMask$(M,1)=" "
+WEND
+
+REM Build the day table
+FOR X=0 TO 6
+      LET Item$=DateInfo.SD$[x+1]
+      DayTable!.put(Item$,x)
+NEXT X
+
+REM Get current date info
+LET CurrentDate$=DATE(CurrentJul:dateMask$)
+LET CurrentMonthYear$=DATE(CurrentJul:"%Ml %Y")
+LET CurrentDay=NUM(DATE(CurrentJul:"%Dz"))
+LET CurrentMonth=NUM(DATE(CurrentJul:"%Mz"))
+LET CurrentYear=NUM(DATE(CurrentJul:"%Y"))
+
+REM The control ID's
+LET grdCalendar=100
+LET txtDate=103
+LET tbnForwardMonth=104
+LET tbnForwardYear=105
+LET tbnBackYear=106
+LET tbnBackMonth=107
+
+REM Misc
+LET TITLE$="BBjGrid"
+LET DayMask$="##B"
+LET CurrentJul=0,CalX=400,CalY=400
+
+REM Get the next available context
+LET CalendarContext=mySysGui!.getAvailableContext()
+mySysGui!.setContext(CalendarContext)
+
+REM Create the main window
+LET MainWindow! = mySysGui!.addWindow(100,100,480,260,TITLE$,$00010013$)
+
+REM Add the calender (grid) to the main window
+LET gridex! = new BBjGridExWidget(MainWindow!,1002,10,25,460,225)
+LET Calendar! = new BBjGridExWrapper(gridex!)
+rem LET Calendar! = MainWindow!.addGrid(grdCalendar,3,26,178,151)
+
+REM Set the attributes of the grid
+Calendar!.setGridEditable(); rem this used to be setGridEditable(1)
+blueColor! = mySysGui!.makeColor(mySysGui!.BLUE)
+Calendar!.setColumnHeaderForeColor(blueColor!)
+Calendar!.setNumRows(6)
+Calendar!.setRowHeight(20)
+Calendar!.setNumColumns(7)
+Calendar!.setMaxColumns(255)
+Calendar!.setHasColumnHeader(mySysGui!.TRUE)
+Calendar!.setVerticalLinesVisible(mySysGui!.TRUE)
+Calendar!.setHorizontalLinesVisible(mySysGui!.TRUE)
+rem Calendar!.setClientEdge(mySysGui!.TRUE); rem method is not found in the documentation
+Calendar!.setSelectionMode(BBjGrid.GRID_SELECT_CELL)
+Calendar!.setGridEditable()
+Calendar!.setCellText(0,0,"")
+
+REM Set the attributes for the grid's columns
+FOR COL = 0 TO 6
+      Calendar!.setColumnWidth(COL,65)
+      Calendar!.setColumnAlignment(Col,BBjGridExWidget.GRID_ALIGN_RIGHT)
+      Calendar!.setColumnForeColor(COL, blueColor!)
+NEXT COL
+
+REM Set the attributes for the grid's column headers
+myVector! = mySysGui!.makeVector()
+myVector!.addItem("S")
+myVector!.addItem("M")
+myVector!.addItem("T")
+myVector!.addItem("W")
+myVector!.addItem("T")
+myVector!.addItem("F")
+myVector!.addItem("S")
+Calendar!.setColumnHeaderText(myVector!)
+Calendar!.setColumnHeaderForeColor(blueColor!)
+
+REM Set the attributes for the current date (static text control)
+LET CurrDate! = MainWindow!.addStaticText(txtDate,45,3,90,20,"")
+CurrDate!.setClientEdge(mySysGui!.TRUE)
+CurrDate!.setForeColor(blueColor!)
+
+REM Create the tool buttons for year and month navigation
+LET myFwdMonth!= MainWindow!.addToolButton(104,138,3,20,20,"")
+myFwdMonth!.setImageFile("ForwardM.bmp")
+LET myFwdYear!= MainWindow!.addToolButton(105,158,3,20,20,"")
+myFwdYear!.setImageFile("ForwardY.bmp")
+LET myBackYear!= MainWindow!.addToolButton(106,2,3,20,20,"")
+myBackYear!.setImageFile("BackY.bmp")
+LET myBackMonth!= MainWindow!.addToolButton(107,22,3,20,20,"")
+myBackMonth!.setImageFile("BackM.bmp")
+
+REM Build the event base info templates
+DIM GENERIC$:NOTICETPL(0,0)
+DIM EVENT$:TMPL(SYSGUI)
+
+RETURN

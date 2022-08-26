@@ -1,0 +1,148 @@
+use java.util.HashMap
+use com.google.gson.JsonObject
+
+use ::Util.bbj::Util
+
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use ::BBjGridExWidget/GxColumns.bbj::GxColumn
+
+class public GridExRowHeader
+
+    field private BBjGridExWidget gridex!
+
+    field private HashMap cellAlignment! = new HashMap()
+    field private HashMap tooltipText! = new HashMap()
+    field private HashMap cellText! = new HashMap()
+    field private HashMap backColor! = new HashMap()
+    field private HashMap foreColor! = new HashMap()
+
+    method public GridExRowHeader(BBjGridExWidget gridex!)
+        #gridex! = gridex!
+    methodend   
+
+    method public int getCellAlignment(int index!)
+        methodret -1
+    methodend
+
+    method public BBjColor getCellBackColor(int index!)
+        if !#backColor!.containsKey(index!) then methodret null()
+        methodret cast(BBjColor,#backColor!.get(index!))
+    methodend
+
+    method public BBjColor getCellForeColor(int index!)
+        if !#foreColor!.containsKey(index!) then methodret null()
+        methodret cast(BBjColor,#foreColor!.get(index!))
+    methodend
+
+    method public int getCellStyle(int index!)
+    methodend
+
+    method public BBjString getCellText(int index!)
+        if !#cellText!.containsKey(index!) methodret ""
+        methodret str(#cellText!.get(index!))
+    methodend
+
+    method public int getDefaultAlignment()
+        if !#cellAlignment!.containsKey("default") then methodret -1
+        methodret num(#cellAlignment!.get("default"))
+    methodend
+
+    method public int getDefaultStyle()
+    methodend
+
+    method public int getStringWidth(BBjString string!)
+        rem #gridexWrapper!.getStringWidth(String!)
+        rem das die einzigste methode die es nicht gibt im im BBJGrid also nur so im Header vorkommt
+    methodend
+
+    method public BBjString getToolTipText()
+        if !#tooltipText!.containsKey("default") then methodret ""
+        methodret str(#tooltipText!.get("default"))
+    methodend
+
+    method public BBjString getToolTipText(int index!)
+        methodret ""
+    methodend
+
+    method public void setCellAlignment(int index!, int alignment!)
+    methodend
+
+    method public void setCellBackColor(int index!, BBjColor color!)
+        column! = #gridex!.getColumn("RH")
+
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("background",hex!)
+
+        #backColor!.put(index!,color!)
+
+        classname! = "RH" + "-cell-BackColor"
+        #gridex!.addStyle("." + classname! , style!)
+        column!.getCellClass().add(classname!)
+
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setCellIcon(int imgList!, int imgIndex!, int index!)
+        rem not implemented in the original
+        throw "setCellIcon is not implemented", 252
+    methodend
+
+    method public void setCellForeColor(int index!, BBjColor color!)
+        column! = #gridex!.getColumn("RH")
+
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("color",hex!)
+
+        #foreColor!.put(index!,color!)
+        
+        classname! = "RH" + "-cell-ForeColor"
+        #gridex!.addStyle("." + classname! , style!)
+        column!.getCellClass().add(classname!)
+        
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setCellStyle(int index!, int style!)
+    methodend
+
+    method public void setCellText(int index!, BBjString text!)
+        rs! = #gridex!.getRS()
+        
+        for i = 0 to rs!.size() -1 
+            dr! = rs!.get(i)
+            if i = index! then 
+                dr!.setFieldValue("RH",text!)
+            endif
+        next i
+        
+        #gridex!.setData(rs!)
+    methodend
+
+    method public void setDefaultAlignment(int alignment!)
+        column! = #gridex!.getColumn("RH")
+        #cellAlignment!.put("default",alignment!)
+        column!.setAlignment(alignment!)
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setDefaultStyle(int style!)
+        rem do not see a difference in the current grid
+        rem not really applicaple for the ex widget
+    methodend
+
+    method public void setToolTipText(BBjString text!)
+        column! = #gridex!.getColumn("RH")
+        
+        #tooltipText!.put("default",text!)
+        
+        exp! = "return '" + text! +"'"
+        column!.setTooltipValueGetterExpression(exp!)
+        column!.setHeaderTooltip(text!)
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setToolTipText(int index!, BBjString text!)
+    methodend
+classend

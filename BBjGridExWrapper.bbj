@@ -1,61 +1,1895 @@
-use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use com.google.gson.JsonObject
 use com.basiscomponents.db.ResultSet
 use com.basiscomponents.db.DataRow
+
+use java.util.HashMap
+
+use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
+use ::BBjGridExWidget/GxColumns.bbj::GxDefaultColumnDefinition
+use ::BBjGridExWidget/GxColumns.bbj::GxColumn
+
+use ::GridExHeaderWrapper.bbj::GridExHeaderWrapper
+use ::Util.bbj::Util
 
 class public BBjGridExWrapper
 
     field private BBjGridExWidget gridex!
     field private ResultSet rs! = new ResultSet()
     field private DataRow rec! = new DataRow()
-    field public BBjNumber NumRows
-    field public BBjNumber NumColumns
-    
+    field private BBjNumber rows! = 0
+    field private BBjNumber columns! = 0
+
+    rem Header
+    field private GridExHeaderWrapper cHeader!
+    field private GridExHeaderWrapper rHeader!
+    field private Boolean showColumnHeader! = 1
+    field private Boolean showRowHeader! = 0
+
+    field private HashMap rowHeight! = new HashMap()
+    field private HashMap tooltip! = new HashMap()
+    field private HashMap backColor! = new HashMap()
+    field private HashMap foreColor! = new HashMap()
+
+    rem Callbacks
+    field public static BBjNumber ON_GRID_DOUBLE_CLICK = 1
+
     method private BBjGridExWrapper()
     methodend
     
     method public BBjGridExWrapper(BBjGridExWidget theGrid!)
         #gridex! = theGrid!
+        #cHeader! = new GridExHeaderWrapper(#gridex!,0)
+        #rHeader! = new GridExHeaderWrapper(#gridex!,1)
     methodend
-    
-    method public void setCellText(BBjNumber row, BBjNumber col, BBjVector v!)
-        #checkAndAdjustDimension()
-        
-        r=row
-        c=col
-        it! = v!.iterator()
-        while it!.hasNext()
-            val! = it!.next()
-            #rs!.get(r).setFieldValue("C"+str(c),val!)
-            c=c+1
-            if c>#NumColumns-1 then
-                c=0
-                r=r+1
-                if r>#NumRows-1 then
-                    break
-                fi
-            fi
-        wend
-        #gridex!.setData(#rs!)
+
+    method public void fillGridWithColumns(int columns!)
+        manager! = #gridex!.getColumnsManager()
+
+        it! = manager!.getColumns().values().iterator()
+        if columns! >= #columns! then
+            while it!.hasNext()
+                column! = it!.next()
+                column!.setHidden(0)
+            wend
+        else
+            count! = 0
+            while it!.hasNext()
+                column! = it!.next()
+                column!.setHidden(count! >= columns!)
+                count! = count! + 1
+            wend
+        endif
     methodend
+
+    method public int isUserResizable()
+        methodret #getUserResizable()
+    methodend
+
+    rem -----------------------
+    rem Internal Methods
+    rem -----------------------
     
     method private void checkAndAdjustDimension()
-        if #rec!.getColumnCount() < #NumColumns then
+        if #rec!.getColumnCount() < #columns! then
             #rec! = new DataRow()
-            for i=0 to #NumColumns-1
+            for i=0 to #columns!-1
                 #rec!.setFieldValue("C"+str(i),"")
             next
-        fi
-        if #rs!.size()>#NumRows then
-            for i=#NumRows to #rs!.size()-1
+        endif
+
+        if #rs!.size()>#rows! then
+            for i=#rows! to #rs!.size()-1
                 #rs!.remove(#rs!.size())
             next
         else
-            while #rs!.size()<#NumRows
-                #rs!.add(#rec!.clone())
+            i = #rs!.size()
+            while #rs!.size()<#rows!
+                dr! = #rec!.clone()
+                dr!.setRowKey("C" + str(i))
+                i = i + 1
+                #rs!.add(dr!)
             wend
-        fi
-
+        endif
+    methodend
     
+    rem -----------------------
+    rem  DEAD API
+    rem -----------------------
+
+    method public Boolean getDragAccept()
+        methodret 0
+    methodend
+    
+    method public Boolean getDragEnabled()
+        methodret 0
     methodend
 
+    method public String getDragType(int row!,int column!)
+        methodret ""
+    methodend
+
+    method public BBjVector getDropTypes(int column!)
+        methodret new BBjVector()
+    methodend
+
+    method public BBjVector getDropTypes(int row!, int column!)
+        methodret new BBjVector()
+    methodend
+
+    method public void setDragAccept(Boolean drag!)
+    methodend
+
+    method public void setDragEnabled(Boolean mode!)
+    methodend
+
+    method public void setDragType(int column!, String type!)
+    methodend
+
+    method public void setDragType(int row!, int column!, String type!)
+    methodend
+
+    method public void setDropTypes(int column!, BBjVector types!)
+    methodend
+
+    method public void setDropTypes(int row!, int column!, BBjVector types!)
+    methodend
+
+    method public void addCellStyleName(int row!, int column!, String styleName!)
+    methodend
+    
+    method public void addColumnStyleName(int column!, String styleName!)
+    methodend
+
+    method public void addRowStyleName(int row!, int column!)
+    methodend
+
+    method public void clearCellStyleNames(int row!, int column!)
+    methodend
+
+    method public void clearColumnStyleNames(int column!)
+    methodend
+
+    method public void clearRowStyleNames(int row!)
+    methodend
+
+    method public BBjVector getCellStyleNames(int row!, int column!)
+        methodret new BBjVector()
+    methodend
+
+    method public BBjVector getColumnStyleNames(int column!)
+        methodret new BBjVector()
+    methodend
+
+    method public BBjVector getRowStyleNames(int row!)
+        methodret new BBjVector()
+    methodend
+
+    method public void removeCellStyleName(int row!, int column!, String styleName!)
+    methodend
+
+    method public void removeColumnStyleName(int column!, String styleName!)
+    methodend
+
+    method public void removeRowStyleName(int row!, String styleName!)
+    methodend
+
+    method public int getColumnGutter()
+        methodret 0
+    methodend
+
+    method public int getColumnHeaderHeight()
+        methodret 0
+    methodend
+
+    method public int getRowGutter()
+        methodret 0
+    methodend
+
+    method public void setColumnGutter(int gutter!)
+    methodend
+
+    method public void setColumnHeaderHeight(int height!)
+        rem TODO
+    methodend
+
+    method public void setRowGutter(int gutter!)
+    methodend
+
+    method public void adjustSpacesWhenDisplaying(int column!, boolean leading!, boolean trailing!, boolean multiple!, boolean all!)
+    methodend
+
+    method public void adjustSpacesWhenSaving(int column!, boolean leading!, boolean trailing!, boolean multiple!, boolean all!)
+    methodend
+
+    method public void doLowerCaseWhenDisplaying(int column!)
+    methodend
+
+    method public void doLowerCaseWhenSaving(int column!)
+    methodend
+
+    method public void doUpperCaseWhenDisplaying(int column!)
+    methodend
+
+    method public void doUpperCaseWhenSaving(int column!)
+    methodend 
+
+    method public int getBottomRow()
+        methodret -1
+    methodend
+
+    method public BBjGridCell getCell(int row!, int column!)
+        methodret null()
+    methodend
+
+    method public BBjGridData getCellRange(int startRow!, int startCol!, int endRow!, int endRow!)
+        methodret null()
+    methodend
+
+    method public BBjGridData getColumnData(int col!, int startRow!, int endRow!)
+        methodret null()
+    methodend
+
+    method public int getClientAreaHeight()
+        methodret -1
+    methodend
+
+    method public int getClientAreaWidth()
+        methodret -1
+    methodend
+
+    method public int getColumnWidth()
+        methodret -1
+    methodend
+
+    method public BBjVector getColumnWidths()
+        methodret null()
+    methodend
+
+    method public int getDefaultColumnWidth()
+        methodret -1
+    methodend
+
+    method public int getInterspace()
+        methodret 0
+    methodend
+
+    method public int getHorizontalCellSpacing()
+        methodret -1
+    methodend
+
+    method public int getHorizontalLinesVisible()
+        methodret -1
+    methodend
+
+    method public int getLeftColumn()
+        methodret -1
+    methodend
+
+    method public int getMaxVisibleColumns()
+        methodret -1
+    methodend
+
+    method public int getMaxVisibleRows()
+        methodret -1
+    methodend
+
+    method public BBjGridData getRowData(int row!)
+        methodret null()
+    methodret
+
+    method public BBjGridData getRowData(int startRow!, int endRow!)
+        methodret null()
+    methodend
+
+    method public int getRowHeight()
+        if !#rowHeight!.containsKey("default") then methodret 25
+        methodret num(#rowHeight!.get("default"))
+    methodend
+
+    method public int getRowHeight(int row!)
+        rem if this specific row has not unique height we return the default
+        if !#rowHeight!.containsKey(row!) then methodret #getRowHeight()
+        methodret num(#rowHeight!.get(row!))
+    methodend
+
+    method public int getShouldHighlightSelectedColumn()
+        methodret -1
+    methodend
+
+    method public int getShouldHighlightSelectedRow()
+        methodret -1
+    methodend
+
+    method public boolean getSnapToRowHeight()
+        methodret 0
+    methodend
+
+    method public String getToolTipText()
+        if !#tooltip!.containsKey("default") then methodret ""
+        methodret str(#tooltip!.get("default"))
+    methodend
+
+    method public String getToolTipText(int col!)
+        if !#tooltip!.containsKey(col!) then methodret ""
+        if !#tooltip!.containsKey("default") then methodret ""
+        methodret str(#tooltip!.get(col!))
+    methodend
+
+    method public String getToolTipText(int row!, int col!)
+        methodret ""
+    methodend
+
+    method public int getTopRow()
+        methodret -1
+    methodend
+
+    method public int getVisibleColumnCount()
+        methodret 0
+    methodend
+
+    method public int getVisibleColumns()
+        methodret 0
+    methodend
+
+    method public int getVisibleRowCount()
+        methodret 0
+    methodend
+
+    method public int getVerticalCellSpacing()
+        methodret -1
+    methodend
+
+    method public int getVerticalLinesVisible()
+        methodret -1
+    methodend
+
+    method public int getVisibleRows()
+        methodret -1
+    methodend
+    
+    method public int isColumnVisible(int column!)
+        methodret -1
+    methodend
+
+    method public int isFitToGrid()
+        methodret -1
+    methodend
+
+    method public int isRowVisible(int row!)
+        methodret -1
+    methodend
+
+    method public void replaceCommasWhenDisplaying(int column!, String valueString!)
+    methodend
+
+    method public void replaceCommasWhenSaving(int column!, String valueString!)
+    methodend
+
+    method public void replaceDecimalsWhenDisplaying(int column!, String valueString!)
+    methodend
+
+    method public void replaceDecimalsWhenSaving(int column!, String valueString!)
+    methodend
+    
+    method public void setColumnWidth(int column!, int width!)
+        gridColumn! = #gridex!.getColumn("C" + str(column!))
+        if gridColumn! <> null() then 
+            gridColumn!.setWidth(width!)
+        endif
+        rem #gridex!.updateColumns()
+    methodend
+
+    method public void setColumnVisible(int column!)
+    methodend
+
+    method public void setDefaultColumnWidth(int width!)
+    methodend
+
+    method public void setFitToGrid(int fit!)
+    methodend
+
+    method public void setHorizontalCellSpacing(int spacing!)
+    methodend
+
+    method public void setHorizontalLinesVisible(int visible!)
+    methodend
+
+    method public void setInterspace(int interspace!)
+    methodend
+
+    method public void setLeftColumn(int column!)
+    methodend
+
+    method public void setMouseCapture(boolean capture!)
+    methodend
+
+    method public void setRowHeight(int height!)
+        #rowHeight!.put("default",height!)
+        #gridex!.getOptions().setRowHeight(height!)
+    methodend
+
+    method public void setRowHeight(int row!, int height!)
+        #rowHeight!.put(row!,height!)
+        #gridex!.setRowHeight("C" + str(row!), height!)
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setRowVisible(int row!)
+    methodend
+
+    method public void setShouldHighlightSelectedColumn(int should!)      
+    methodend
+
+    method public void setSnapToRowHeight(boolean should!)
+    methodend
+
+    method public void setShouldHighlightSelectedRow(int should!)
+    methodend
+
+    method public void setTopRow(int row!)
+    methodend
+    
+    method public void setVerticalCellSpacing(int spacing!)
+    methodend
+
+    method public void setVerticalLinesVisible(int visible!)
+    methodend
+
+    method public int getHorizontalScrollable()
+        methodret 1
+    methodend
+
+    method public int getHorizontalScrollBarAlways()
+        methodret 1
+    methodend
+
+    method public int getPagingAmount()
+        methodret -1
+    methodend
+
+    method public int getScrollOutside()
+        methodret -1
+    methodend
+
+    method public int getScrollUpdate()
+        methodret -1
+    methodend
+
+    method public int getVerticalScrollable()
+        methodret -1
+    methodend
+
+    method public int getVerticalScrollBarAlways()
+        methodret -1
+    methodend
+
+    method public int isPaging()
+        methodret -1
+    methodend
+
+    method public void scrollToBottom()
+    methodend
+
+    method public void setHorizontalScrollable(int scroll!)
+    methodend
+
+    method public void setHorizontalScrollBarAlways(int always!)
+    methodend
+
+    method public void setPaging(int page!)
+    methodend
+
+    method public void setPagingAmount(int lines!)
+    methodend
+
+    method public void setScrollOutside(int outside!)
+    methodend
+
+    method public void setScrollUpdate(int update!)
+    methodend
+    
+    method public void setVerticalScrollable(int scroll!)
+    methodend
+
+    method public void setVerticalScrollBarAlways(int always!)
+    methodend
+
+    method public void suppressUpdatesWhileScrolling(int suppress!)
+    methodend
+
+    method public void getColumnMask(int column!)
+    methodend
+
+    method public Boolean getShowMaskWhenRendering()#
+        methodret 0
+    methodend
+
+    method public void getShowMaskWhenRendering(int shouldShow!)
+    methodend
+
+    method public int getInsertMode()
+        methodret -1
+    methodend
+
+    method public void setInsertMode(int mode!)
+    methodend
+
+    method public void setColumnMask(int column!, String mask!)
+    methodend
+
+    method public int getStringWidth(String text!)
+        methodret -1
+    methodend
+
+    rem -------
+
+    method public int getEditClickCount()
+        methodret -1
+    methodend
+
+    method public String getEditText()
+        methodret ""
+    methodend
+
+    method public int isColumnEditable(int column!)
+        methodret -1
+    methodend
+
+    method public int isEditable()
+        methodret -1
+    methodret
+
+    method public Boolean isEditing()
+        methodret 0
+    methodend
+
+    method public Boolean isEditOnKeyPress()
+        methodret 0
+    methodend
+
+    method public int isRowEditable()
+        methodret -1
+    methodend
+
+    method public void setColumnEditable(int column!, int editable!)
+    methodend
+
+    method public void setEditClickCount(int count!)
+    methodend
+
+    method public void setEditable(int editable!)
+    methodend
+
+    method public void setEditOnKeyPress(Boolean value!)
+    methodend
+
+    method public void setRowEditable(int row!, int editable!)
+    methodend
+
+    method public void startEdit(int row!, int column!)
+    methodend
+
+    rem -------
+
+    method public int getColumnHeaderCellStyle(int column!)
+        methodret -1
+    methodend
+    
+    method public int getColumnHeaderCellStyle()
+        methodret -1
+    methodend
+
+    method public void setColumnHeaderCellStyle(int column!, int style!)
+        methodret -1
+    methodend
+
+    rem -------
+
+    method public int getCellVerticalAlignment(int row!, int column!)
+        methodret -1
+    methodend
+
+    method public int getColumnAlignment(int column!)
+        methodret -1
+    methodend
+
+    method public int getColumnVerticalAlignment(int column!)
+        methodret -1
+    methodend
+
+    method public int getColumnHeaderAlignment()
+        methodret -1
+    methodend
+
+    method public int getColumnHeaderCellAlignment(int column!)
+        methodret -1
+    methodend
+
+    method public int getColumnHeaderCellVerticalAlignment(int align!)
+        methodret -1 
+    methodend
+
+    method public int getColumnHeaderVerticalAlignment()
+        methodret -1
+    methodend
+
+    method public int getDefaultVerticalAlignment()
+        methodret -1
+    methodend
+
+    method public int getMainGridAlignment()
+        methodret -1
+    methodend
+
+    method public int getMainGridVerticalAlignment()
+        methodret -1
+    methodend
+
+    method public int getRowVerticalAlignment(int row!)
+        methodret -1
+    methodend
+    
+    method public void setCellVerticalAlignment(int row!, int column!, int align!)
+    methodend
+    
+    method public void setColumnAlignment(int column!, int align!)
+    methodend
+
+    method public void setColumnVerticalAlignment(int column!, int align!)
+    methodend
+
+    method public void setColumnHeaderAlignment(int align!)
+    methodend
+
+    method public void setColumnHeaderCellAlignment(int column!, int align!)
+    methodend
+
+    method public void setColumnHeaderCellVerticalAlignment(int column!, int align!)
+    methodend
+
+    method public void setColumnHeaderVerticalAlignment(int align!)
+    methodend
+
+    method public void setDefaultAlignment(int align!)
+    methodend
+
+    method public void setDefaultVerticalAlignment(int align!)
+    methodend
+
+    method public void setMainGridAlignment(int align!)
+    methodend
+
+    method public void setMainGridVerticalAlignment(int align!)
+    methodend
+
+    method public void setRowVerticalAlignment(int row!, int align!)
+    methodend
+
+    rem -------
+    method public void deselectAllCells()
+    methodend
+
+    method public int getHeaderSelection()
+        methodret 0
+    methodend
+
+    method public int getHighlightMethod()
+        methodret 0
+    methodend
+
+    method public BBjGridCell getSelectedCell()
+        methodret null()
+    methodend
+
+    method public BBjVector getSelectedCells()
+        methodret null()
+    methodend
+
+    method public int getSelectedColumn()
+        methodret 0
+    methodend
+
+    method public BBjVector getSelectedColumns()
+        methodret null()
+    methodend
+
+    method public int getSelectedRow()
+        methodret 0
+    methodend
+
+    method public BBjVector getSelectedRows()
+        methodret null()
+    methodend
+
+    method public int getSelectionMode()
+        methodret 0
+    methodend
+
+    method public int getTabAction()
+        methodret 0
+    methodend
+
+    method public int getTabActionSkipsNonEditableCells()
+        methodret 0
+    methodend
+
+    method public Boolean isEnhancedSelectionModelEnabled()
+        methodret 0
+    methodend
+
+    method public Boolean isEnterAsTab()
+        methodret 0
+    methodend
+
+    method public int isMultipleSelectionAllowed()
+        methodret 0
+    methodend
+
+    method public Boolean isSelected(BBjGridCell cell!)
+        methodret 0
+    methodend
+
+    method public Boolean isSelected(int row!, int column!)
+        methodret 0
+    methodend
+
+    method public void moveToNextCell()
+    methodend
+
+    method public void setEnhancedSelectionModelEnabled(Boolean mode!)
+    methodend
+
+    method public void setEnterAsTab(Boolean enterAsTab!)
+    methodend
+
+    method public void setHeaderSelection(int select!)
+    methodend
+
+    method public void setHighlightMethod(int highlight!)
+    methodend
+
+    method public void setMultipleSelection(int multiple!)
+    methodend
+
+    method public void setSelectedCell(BBjGridCell gridCell!)
+    methodend
+
+    method public void setSelectedCell(int row!, int column!)
+    methodend
+
+    method public void setSelectedCells(BBjVector selection!)
+    methodend
+
+    method public void setSelectedColumn(int column!)
+    methodend
+
+    method public void setSelectedColumns(BBjVector selection!)
+    methodend
+
+    method public void setSelectedRow(int row!)
+    methodend
+
+    method public void setSelectedRows(BBjVector selection!)
+    methodend
+
+    method public void setSelectionMode(int mode!)
+    methodend
+
+    method public void setTabAction(int action!)
+    methodend
+
+    method public void setTabActionSkipsNonEditableCells(int skips!)
+    methodend
+
+    rem -------
+    method public BBjColor getColumnBackColor(int column!)
+        if !#backColor!.containsKey(column!) then methodret null()
+        methodret cast(BBjColor,#backColor!.get(column!))
+    methodend
+    
+    method public BBjColor getColumnForeColor(int column!)
+        if !#foreColor!.containsKey(column!) then methodret null()
+        methodret cast(BBjColor,#foreColor!.get(column!))
+    methodend
+
+    method public BBjColor getColumnHeaderBackColor()
+        if !#backColor!.containsKey("default") then methodret null()
+        methodret cast(BBjColor,#backColor!.get("default"))
+    methodend
+     
+    method public BBjColor getColumnHeaderCellBackColor(int column!)
+        methodret #cHeader!.getCellBackColor(column!)
+    methodend
+
+    method public BBjColor getColumnHeaderCellForeColor(int column!)
+        methodret #cHeader!.getCellForeColor(column!)
+    methodend
+
+    method public BBjColor getColumnHeaderForeColor()
+        if !#foreColor!.containsKey("default") then methodret null()
+        methodret cast(BBjColor,#foreColor!.get("default"))
+    methodend
+
+    method public BBjColor getLineColor()
+        methodret null()
+    methodend
+
+    method public BBjColor getMainGridBackColor()
+        if !#backColor!.containsKey("main") then methodret null()
+        methodret cast(BBjColor,#backColor!.get("main"))
+    methodend
+
+    method public BBjColor getMainGridForeColor()
+        if !#foreColor!.containsKey("main") then methodret null()
+        methodret cast(BBjColor,#foreColor!.get("main"))
+    methodend
+
+    method public BBjColor getMainGridStripeColor()
+        methodret null()
+    methodend
+
+    method public BBjColor getSelectionBackground()
+        methodret null()
+    methodend
+
+    method public BBjColor getSelectionForeground()
+        methodret null()
+    methodend
+
+    method public int getStripeCount()
+        methodret 0
+    methodend
+
+    method public void setColumnBackColor(int column!, BBjColor color!)
+        cname! = "C" + str(column!)
+        gridColumn! = #gridex!.getColumn(cname!)
+
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("background",hex!)
+
+        #backColor!.put(column!,color!)
+
+        classname! = cname! + "-BackColor"
+        #gridex!.addStyle("." + classname! , style!)
+        gridColumn!.getCellClass().add(classname!)
+
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setColumnForeColor(int column!, BBjColor color!)
+        cname! = "C" + str(column!)
+        gridColumn! = #gridex!.getColumn(cname!)
+        rem escape
+
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("color",hex!)
+
+        #foreColor!.put(column!,color!)
+
+        classname! = cname! + "-ForeColor"
+        #gridex!.addStyle("." + classname! , style!)
+        gridColumn!.getCellClass().add(classname!)
+
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setColumnHeaderBackColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+
+        #backColor!.put("default",color!)
+        
+        dr! = #rs!.get(0)
+        columnCount! = dr!.getColumnCount()
+        if dr!.contains("RH") then 
+            columnCount! = columnCount! -1
+        endif
+    
+        for i = 0 to columnCount! -1
+            #cHeader!.setCellBackColor(i,color!)    
+        next i 
+    methodend
+
+    method public void setColumnHeaderCellBackColor(int column!, BBjColor color!)
+        #cHeader!.setCellBackColor(column!,color!)
+    methodend
+
+    method public void setColumnHeaderCellForeColor(int column!, BBjColor color!)
+        #cHeader!.setCellForeColor(column!,color!)
+    methodend
+
+    method public void setColumnHeaderForeColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+
+        #foreColor!.put("default",color!)
+        
+        dr! = #rs!.get(0)
+        columnCount! = dr!.getColumnCount()
+        if dr!.contains("RH") then 
+            columnCount! = columnCount! -1
+        endif
+
+        for i = 0 to columnCount! -1 
+            #cHeader!.setCellForeColor(i,color!)    
+        next i 
+    methodend
+
+    method public void setLineColor(BBjColor color!)
+    methodend
+
+    method public void setMainGridBackColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+
+        dr! = #rs!.get(0)
+        columnCount! = dr!.getColumnCount()
+    
+        if dr!.contains("RH") then 
+            columnCount! = columnCount! -1
+        endif
+        
+        #backColor!.put("main",color!)
+    
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("background",hex!)
+
+        classname! = "main" + "-BackColor"
+        #gridex!.addStyle("." + classname! , style!)
+        for i = 0 to columnCount! -1
+            column! = #gridex!.getColumn("C" + str(i))
+            column!.getCellClass().add(classname!)
+        next i 
+
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setMainGridForeColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+            
+        dr! = #rs!.get(0)
+        columnCount! = dr!.getColumnCount()
+
+        if dr!.contains("RH") then 
+            columnCount! = columnCount! -1
+        endif
+        
+        #foreColor!.put("main",color!)
+
+        style! = new JsonObject()
+        hex! = Util.converRgbToHex(color!)
+        style!.addProperty("color",hex!)
+
+        classname! = "main" + "-BackColor"
+        #gridex!.addStyle("." + classname! , style!)
+        for i = 0 to columnCount! -1
+            column! = #gridex!.getColumn("C" + str(i))
+            column!.getCellClass().add(classname!)
+        next i 
+
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setMainGridStripeColor(BBjColor color!)
+rem         if #rs!.isEmpty() then methodret
+
+rem         #stripeColor! = color!
+        
+rem         rules! = #gridex!.getOptions().getRowClassRules()
+
+rem         rule! = "var count = 0;
+rem :        var shouldColor = true;
+rem :        var stripeCount = 3;
+rem :        
+rem :        for(var i = 0;i < 20; i++){
+rem :            if(shouldColor) {
+rem :                count++;
+rem :                if(count == stripeCount){
+rem :                    shouldColor = false;
+rem :                    count = 0;
+rem :                }
+rem :            } else {
+rem :                count++;
+rem :                if(count == stripeCount){
+rem :                    shouldColor = true;
+rem :                    count = 0;
+rem :                }
+rem :            }
+rem :            
+rem :            if (i == rowIndex && shouldColor){
+rem :                return true;
+rem :            } else {
+rem :                return false;
+rem :            }
+rem :        }"
+
+rem         style! = "{""background"": """ + Util.converRgbToHex(color!) + " !important""}"
+rem         rem style2! = "{""background"": ""#ff8a65 !important""}"
+
+rem         rules!.addProperty("stripeColors",rule!)
+rem         #gridex!.addStyle(".stripeColors",style!)
+rem         #gridex!.updateColumns()
+rem         escape        
+    methodend
+
+    method public void setSelectionBackground(BBjColor color!)
+    methodend
+
+    method public void setSelectionForeground(BBjColor color!)
+    methodend
+
+    method public void setStripeCount(int count!)
+    methodend
+
+    method public void setViewportColor(BBjColor color!)
+    methodend
+
+    rem -------
+
+    method public BBjFont getColumnFont(int column!)
+        methodret null()
+    methodend
+
+    method public BBjFont getColumnHeaderFont()
+        methodret null()
+    methodend
+
+    method public BBjFont getMainGridFont()
+        methodret null()
+    methodend
+
+    method public void setColumnFont(int col!, BBjFont font!)
+    methodend
+
+    method public void setColumnHeaderFont(BBjFont font!)
+    methodend
+
+    method public void setMainGridFont(BBjFont font!)
+    methodend
+
+    rem -------
+    method public void setColumnHeaderCellIcon(int imageListID!, int index!, int column!)
+    methodend
+    
+    method public void setColumnHeaderCellImage(int column!, BBjImage image!)
+    methodend
+
+    rem -------
+
+    method public Boolean getBeepOnValidationFailure()
+        methodret 0
+    methodend
+
+    method public int getStartEditSelectionMode()
+        methodret 0
+    methodend
+
+    method public Boolean getTrimBlankSpace()
+        methodret 0
+    methodend
+
+    method public String getUpdateErrorMessage()
+        methodret ""
+    methodend
+
+    method public Boolean isDataAware()
+        methodret 0
+    methodend
+
+    method public Boolean isDataBound()
+        methodret 0
+    methodend
+
+    method public Boolean isEnabled()
+        methodret 0
+    methodend
+
+    method public Boolean setBeepOnValidationFailure(Boolean shouldBeep!)
+        methodret 0
+    methodend
+
+    method public void setEnabled(Boolean enabled!)
+    methodend
+
+    method public int setStartEditSelectionMode(int mode!)
+        methodret 0
+    methodend
+
+    method public void setTrimBlankSpace(Boolean shouldTrim!)
+    methodend
+    
+    method public Boolean showCalendarForCell()
+        methodret 0
+    methodend
+
+    method public Boolean showCalendarForCell(Boolean stopCellEdit!)
+        methodret 0
+    methodend
+
+    method public Boolean showCalendarForCell(int row!, int column!)
+        methodret 0
+    methodend
+
+    method public Boolean showCalendarForCell(int row!, int column!, Boolean stopCellEdit!)
+        methodret 0
+    methodend
+    
+    rem -------
+
+    method public void endEdit()
+    methodend
+
+    method public int endEdit(int suppress!)
+        methodret 0
+    methodend
+
+    method public int getColumnStyle(int column!)
+        methodret 0
+    methodend
+
+    method public int getDefaultGridStyle()
+        methodret 0
+    methodend
+
+    method public void setColumnStyle(int column!, int style!)
+    methodend
+
+    method public void setDefaultGridStyle(int style!)
+    methodend
+
+    rem -------
+
+    method public Boolean isFocusable()
+        methodret 0
+    methodend
+
+    method public void setFocusable(Boolean focus)
+    methodend
+
+    rem -------
+
+    method public int getScrollWheelBehavior()
+        methodret 0
+    methodend
+
+    method public void setScrollWheelBehavior(int trav!)
+    methodend
+
+    rem -------
+    
+    method public int getHorizontalScrollBarHeight()
+        methodret 0
+    methodend
+
+    method public int getHorizontalScrollBarPosition()
+        methodret 0
+    methodend
+
+    method public int getHorizontalScrollBarWidth()
+        methodret 0
+    methodend
+
+    method public int getVerticalScrollBarHeight()
+        methodret 0
+    methodend
+
+    method public int getVerticalScrollBarPosition()
+        methodret 0
+    methodend
+
+    method public int getVerticalScrollBarWidth()
+        methodret 0
+    methodend
+
+    method public Boolean isHorizontalScrollBarVisible()
+        methodret 0
+    methodend
+
+    method public Boolean isVerticalScrollBarVisible()
+        methodret 0
+    methodend
+
+    method public void setHorizontalScrollBarPosition(int position!)
+    methodend
+
+    method public void setVerticalScrollBarPosition(int position!)
+    methodend
+
+    rem -------
+
+    method public Boolean isTabTraversable()
+        methodret 0
+    methodend
+
+    method public void setTabTraversable(Boolean trav!)
+    methodend
+
+    rem -------
+
+    method public int getColumnHeaderStyle()
+        methodret -1
+    methodend
+    
+
+    method public void setColumnHeaderStyle(int style!)
+        methodret -1
+    methodend
+
+    rem -----------------------
+    rem  SETTER
+    rem -----------------------
+
+    method public void setToolTipText(String text!)
+        manager! = #gridex!.getColumnsManager()
+
+        it! = manager!.getColumns().values().iterator()
+        #tooltip!.put("default",text!)
+       
+        while it!.hasNext()
+            column! = it!.next()
+            exp! = "return '" + text! +"'"
+            column!.setTooltipValueGetterExpression(exp!)
+        wend
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setToolTipText(int col!, String text!)
+        columnManager! = #gridex!.getColumnsManager()
+
+        column! = columnManager!.getColumn("C" + str(col!))
+        #tooltip!.put(col!,text!)
+
+        exp! = "return '" + text! +"'"
+        column!.setTooltipValueGetterExpression(exp!)
+        #gridex!.updateColumns()
+    methodend
+
+    method public void setToolTipText(int row!, int col!, String text!)
+    methodend
+
+    method public void setHasColumnHeader(Boolean header!)
+        #showColumnHeader! = header!
+        options! = #gridex!.getOptions() 
+        if header! then 
+            options!.setHeaderHeight(25)
+        else
+            options!.setHeaderHeight(0)
+        endif
+    methodend
+
+    method public void setHasRowHeader(Boolean header!)
+        #showRowHeader! = header!
+        if header! then
+            rowHeader! = new GxColumn("RH","")
+            rowHeader!.setPinned(GxColumn.PINNED_LEFT())
+            #gridex!.addColumn(rowHeader!)
+            #gridex!.updateColumns()
+        else
+            #gridex!.removeColumn("RH")
+            #gridex!.updateColumns()
+        endif
+    methodend
+
+    method public void setCellText(BBjVector v!)
+        #setCellText(0,0,v!)
+    methodend
+
+    method public void setCellText(BBjNumber row!, BBjNumber col!, BBjString text!)
+        #checkAndAdjustDimension()    
+        dr! = #rs!.get(row!)
+
+        for i = 0 to dr!.getColumnCount() -1
+            if i = col! then 
+                name! = dr!.getColumnName(i)
+                dr!.setFieldValue(name!,text!)
+            endif
+        next i
+        #gridex!.setData(#rs!)
+    methodend
+
+    method public void setCellText(BBjNumber row!, BBjNumber col!, BBjVector v!)
+        #checkAndAdjustDimension()
+        r!=row!
+        c!=col!
+        it! = v!.iterator()
+        while it!.hasNext()
+            val! = it!.next()
+            #rs!.get(r!).setFieldValue("C"+str(c!),val!)
+            c! = c! + 1
+            if c! > #columns! -1 then
+                c! =0
+                r! = r! + 1
+                if r! > #rows! -1 then
+                    break
+                endif
+            endif
+        wend
+        #gridex!.setData(#rs!)
+    methodend
+
+    method public void setNumColumns(int columns!)
+        #columns! = columns!
+    methodend
+
+    method public void setNumRows(int rows!)
+        #rows! = rows!
+    methodend
+
+    method public void setUserResizable(int resize!)
+        #gridex!.getOptions().getDefaultColumnDefinition().setResizable(resize!)
+    methodend
+
+    method public void setColumnHeaderCellText(int column!, String text!)
+        #cHeader!.setCellText(column!,text!)
+    methodend
+
+    method public BBjGridCell makeCell(int row!, int col!)
+        methodret null()
+    methodend
+
+    method public void setCell(BBjGridCell cell!)
+    methodend
+
+    method public void setCells(BBjVector cells!)
+    methodend
+
+    method public void setColumnHeaderText(BBjVector strings!)
+        if #rs!.isEmpty() then methodret
+        dr! = #rs!.get(0)
+        columnCount! = dr!.getColumnCount()
+
+        for i = 0 to columnCount! -1
+            rem to make sure that we don't run into a index out of bounds
+            if i <= strings!.size() -1 
+                #cHeader!.setCellText(i,str(strings!.get(i)))
+            endif
+        next i
+    methodend
+    
+    rem -----------------------
+    rem  GETTER
+    rem -----------------------
+
+    method public String getCellText(int row!, int column!)
+        dr! = #rs!.get(row!,err=*next)
+        if dr! = null() or dr!.isEmpty() then methodret ""
+
+        for i = 0 to dr!.getColumnCount() -1
+            if i = column! then 
+                name! = dr!.getColumnName(i)
+                methodret dr!.getFieldValue(name!)
+            endif
+        next i
+    methodend
+
+    method public String getColumnHeaderCellText(int column!)
+        methodret #cHeader!.getCellText(column!)
+    methodend
+
+    method public int getHasColumnHeader()
+        methodret #showColumnHeader!
+    methodend
+
+    method public int getHasRowHeader()
+        methodret #showRowHeader!
+    methodend
+
+    method public GridExHeaderWrapper getColumnHeader()
+        methodret #cHeader!
+    methodend
+
+    method public GridExHeaderWrapper getRowHeader()
+        methodret #rHeader!
+    methodend
+
+    method public int getUserResizable()
+        methodret #gridex!.getOptions().getDefaultColumnDefinition().getResizable()
+    methodend
+
+    method public int getNumRows()
+        methodret #rows!
+    methodend
+
+    method public int getNumColumns()
+        methodret #columns!
+    methodend
+
+    rem ------------ BBjStandardGrid
+    method public int getRowHeaderWith()
+        methodret 0
+    methodend
+
+    method public void setRowHeaderWidth(int width!)
+    methodend
+
+    method public void clearRowHeader()
+        for i = 0 to #rows! -1 
+            #rHeader!.setCellText(i,"")
+        next i
+    methodend
+
+    method public void clearRowHeader(int row!)
+        #rHeader!.setCellText(row!,"")
+    methodend
+
+    method public void clearColumnHeader()
+        for i = 0 to #columns! -1 
+            #cHeader!.setCellText(i,"")
+        next i
+    methodend
+
+    method public void clearColumnHeader(int column!)
+        #cHeader!.setCellText(column!,"")
+    methodend
+
+    method public void deleteColumn(int column!)
+        #gridex!.removeColumn("C" + str(column!))
+        #gridex!.updateColumns()
+    methodend
+
+    method public BBjVector getHiddenColumns()
+    methodend
+
+    method public BBjVector getHiddenColumns(int startColumn!, int endColumn!)
+    methodend
+
+    method public BBjVector getHiddenRows()
+    methodend
+
+    method public BBjVector getHiddenRows(int startRow!, int endRow!)
+    methodend
+
+    method public int getMaxColumns()
+    methodend
+
+    method public int getMaxRows()
+    methodend
+
+    method public int getRowModelIndexFromViewIndex(int index!)
+    methodend
+
+    method public int getRowViewIndexFromModelIndex(int index!)
+    methodend
+
+    method public int getSortByMultipleColumns()
+    methodend
+
+    method public void hideColumn(int column!)
+    methodend
+
+    method public void hideColumns(BBjVector columns!)
+    methodend
+
+    method public void hideColumns(int startColumn!, int endColumn!)
+    methodend
+
+    method public void hideRow(int row!)
+    methodend
+
+    method public void hideRows(BBjVector rows!)
+    methodend
+
+    method public void hideRows(int startRow!, int endRow!)
+    methodend
+
+    method public void insertColumn(int index!)
+    methodend
+
+    method public void insertRow(int index!)
+    methodend
+
+    method public Boolean isColumnHidden()
+    methodend
+    
+    method public Boolean isColumnSortedByReleatedData(int columnIndex!)
+    methodend
+
+    method public Boolean isColmnUserSortable(int columnIndex!)
+    methodend
+
+    method public Boolean isRowHidden(int row!)
+    methodend
+
+    method public void resort()
+    methodend
+
+    method public void setAllColumnUserSortable(Boolean sortable!)
+    methodend
+
+    method public void setColumnUserSortable(int columnIndex!, boolean sortable!)
+    methodend
+
+    method public void sortByColumn(int columnIndex!, int sortOrder!)
+    methodend
+
+    method public void setColumnSortedByRelatedData(int columnIndex!, int isByRelatedData!)
+    methodend
+
+    method public void setMaxColumns(int max!)
+    methodend
+
+    method public void setMaxRows(int max!)
+    methodend
+
+    method public void setSortByMultipleColumns(Boolean sortByMultiple!)
+    methodend
+
+    method public void unhideColumn(int column!)
+    methodend
+
+    method public void unhideColumns()
+    methodend
+
+    method public void unhideColumns(BBjVector columns!)
+    methodend
+
+    method public void unhideColumns(int startColumn!, int endColumn!)
+    methodend
+
+    method public void unhideRow(int row!)
+    methodend
+
+    method public void unhideRows()
+    methodend
+
+    method public void unhideRows(BBjVector rows!)
+    methodend
+
+    method public void unsort()
+    methodend
+
+    method public void unsort(Boolean revertAllSortByRelated!, Boolean revertAllUserSortable!)
+    methodend
+
+    method public void clear()
+    methodend
+
+    method public void clear(int row!, int column!)
+    methodend
+
+    method public void clearGrid()
+    methodend
+
+    method public void clearImage()
+    methodend
+
+    method public void clearImage(int row!, int column!)
+    methodend
+
+    method public void clearMainGrid()
+    methodend
+
+    method public void clearRelated()
+    methodend
+
+    method public void clearRelated(int row!, int column!)
+    methodend
+
+    method public void clearRestore()
+    methodend
+
+    method public void clearRestore(int row!, int column!)
+    methodend
+
+    method public void clearText()
+    methodend
+
+    method public void clearText(int row!, int column!)
+    methodend
+
+    method public String getCellMask(int row!, int column!)
+    methodend
+
+    method public String getCellRelated(int row!, int column!)
+    methodend
+
+    method public String getCellRestore(int row!, int column!)
+    methodend
+
+    method public Boolean getInputNBeep()
+    methodend
+
+    method public String getInputNCommaCharacter()
+    methodend
+
+    method public String getInputNDotCharacter()
+    methodend
+
+    method public Boolean getInputNUseEditCommas()
+    methodend
+
+    method public String getRowHeaderCellText(int row!)
+    methodend
+
+    method public int getRowHeaderWidth()
+    methodend
+
+    method public int getUpdateCached()
+    methodend
+
+    method public void restoreCell(int row!, int col!)
+    methodend
+
+    method public void restoreRow(int row!)
+    methodend
+
+    method public void setCellData(int row!, int column!, String text!, String related!)
+    methodend
+
+    method public void setCellIcon(int imageListID!, int index!, int row!, int column!)
+    methodend
+
+    method public void setCellImage(int row!, int column!, BBjImage image!)
+    methodend
+
+    method public void setCellImage(BBjVector cells!, BBjImage image!)
+    methodend
+
+    method public void setCellMask(int row!, int column!, String mask!)
+    methodend
+
+    method public void setCellRelated(int row!, int col!, String text!)
+    methodend
+    
+    method public void setCellRelated(int startRow!, int startCol!, BBjVector strings!)
+    methodend
+
+    method public void setCellRestore(int row!, int column!, String restore!)
+    methodend
+
+    method public void setDefaultColumnText(int column!, String text!)
+    methodend
+
+    method public void setInputNBeep(Boolean shouldBeep!)
+    methodend
+
+    method public void setInputNCommaCharacter(String charString!)
+    methodend
+
+    method public void setInputNDotCharacter(String charString!)
+    methodend
+
+    method public void setInputNUseEditCommas(Boolean shouldUse!)
+    methodend
+
+    method public void setRowHeaderCellIcon(int imageListID!, int index!, int row!)
+    methodend
+
+    method public void setRowHeaderCellImage(int row!, BBjImage image!)
+    methodend
+
+    method public void setRowHeaderCellText(int row!, String text!)
+    methodend
+
+    method public void setRowHeaderText(BBjVector strings!)
+    methodend
+
+    method public void setUpdateCached(Boolean update!)
+    methodend
+
+    method public int isCellEditable(int row!, int column!)
+    methodend
+
+    method public void setCellEditable(int row!, int column!, int editable!)
+    methodend
+
+    method public int isGridEditable()
+    methodend
+    
+    method public void setGridEditable()
+    methodend
+
+    method public int getCellState(int row!, int column!)
+    methodend
+
+    method public int getCellStyle(int row!, int column!)
+    methodend
+
+    method public int getRowHeaderCellStyle(int row!)
+    methodend
+
+    method public int getRowHeaderStyle()
+    methodend
+
+    method public void setCellState(int row!, int column!, int state!)
+    methodend
+
+    method public void setCellStyle(int row!, int column!, int style!)
+    methodend
+
+    method public void setRowHeaderCellStyle(int row!, int style!)
+    methodend
+
+    method public void setRowHeaderStyle(int style!)
+    methodend
+
+    method public void setRowStyle(int row!, int style!)
+    methodend
+
+    method public int getRowHeaderVerticalAlignment()
+    methodend
+
+    method public int getRowHeaderCellVerticalAlignment(int row!)
+    methodend
+
+    method public void setRowHeaderVerticalAlignment(int align!)
+    methodend
+
+    method public void setRowHeaderCellAlignment(int row!, int align!)
+    methodend
+
+    method public void setRowHeaderCellVerticalAlignment(int row!, int align!)
+    methodend
+
+    method public Boolean getCellHasQuery(int row!, int column!)
+    methodend
+
+    method public Boolean getColumnHasQuery(int column!)
+    methodend
+
+    method public void setCellHasQuery(int row!, int column!, Boolean hasQuery!)
+    methodend
+
+    method public void setColumnHasQuery(int column!, Boolean hasQuery!)
+    methodend
+
+    method public BBjColor getCellBackColor(int row!, int column!)
+    methodend
+
+    method public BBjColor getCellForeColor(int row!, int column!)
+    methodend
+
+    method public BBjColor getRowHeaderBackColor()
+    methodend
+
+    method public BBjColor getRowHeaderCellBackColor(int row!)
+    methodend
+
+    method public BBjColor getRowHeaderCellForeColor(int row!)
+    methodend
+
+    method public BBjColor getRowHeaderForeColor()
+    methodend
+
+    method public void setCellBackColor(int row!, int column!, BBjColor color!)
+    methodend
+
+    method public void setCellForeColor(int row!, int column!, BBjColor color!)
+    methodend
+
+    method public void setRowBackColor(int row!, BBjColor color!)
+    methodend
+
+    method public void setRowForeColor(int row!, BBjColor color!)
+    methodend
+
+    method public void setRowHeaderBackColor(BBjColor color!)
+    methodend
+
+    method public void setRowHeaderCellBackColor(int row!, BBjColor color!)
+    methodend
+
+    method public void setRowHeaderCellForeColor(int row!, BBjColor color!)
+    methodend
+
+    method public void setRowHeaderForeColor(BBjColor color!)
+    methodend
+
+    method public BBjFont getCellFont(int row!, int column!)
+    methodend
+
+    method public BBjFont getRowFont(int row!)
+    methodend
+   
+    method public BBjFont getRowHeaderFont()
+    methodend
+
+    method public void setCellFont(int row!, int column!, BBjFont font!)
+    methodend
+
+    method public void setRowFont(int row!, BBjFont font!)
+    methodend
+
+    method public void setRowHeaderFont(BBjFont font!)
+    methodend
+
+    method public BBjComboBox getCellListControl(int row!, int column!)
+    methodend
+
+    method public int getCellListSelection(int row!, int column!)
+    methodend
+
+    method public BBjComboBox getColumnListControl(int column!)
+    methodend
+
+    method public int getColumnListSelection(int column!)
+    methodend
+
+    method public void setCellListControl(int row!, int column!, BBjComboBox list!)
+    methodend
+
+    method public void setCellListSelection(int row!, int column!, int sel!, int redraw!)
+    methodend
+
+    method public void setColumnListControl(int column!, BBjComboBox list!)
+    methodend
+
+    method public void setColumnListSelection(int column!, int index!, int repaint!)
+    methodend
+
+    rem ------------ 
+
+    method public void cancelSeekDialog()
+    methodend
+
+    method public void deleteRow(int index!)
+    methodend
+
+    method public String getInsertErrorMessage()
+    methodend
+
+    method public String getInsertMessage()
+    methodend
+
+    method public String getRecord(int index!)
+    methodend
+
+    method public int getShowInsertMessage()
+    methodend
+
+    method public int getShowUpdateMessage()
+    methodend
+
+    method public String getUpdateBusyMessage()
+    methodend
+
+    method public String getUpdateDeletedMessage()
+    methodend
+
+    method public String getUpdateMessage()
+    methodend
+
+    method public void insertRow()
+    methodend
+    
+    method public void seekLastRecord()
+    methodend
+
+    method public void seekLastRecord(String title!, String msg!, String cancelString!)
+    methodend
+
+    method public void setDataChannel(int channel!, String template!)
+    methodend
+
+    method public void setInsertErrorMessage(String msg!)
+    methodend
+
+    method public void setInsertMessage(String msg!)
+    methodend
+
+    method public void setShowInsertMessage(int show!)
+    methodend
+
+    method public void setShowUpdateMessage(int show!)
+    methodend
+
+    method public void setUpdateBusyMessage(String msg!)
+    methodend
+
+    method public void setUpdateDeletedMessage(String msg!)
+    methodend
+
+    method public void setUpdateErrorMessage(String msg!)
+    methodend
+
+    method public void setUpdateMessage(String msg!)
+    methodend
+
+    method public void synchData()
+    methodend
+
+    method public void undoRowEdit()
+    methodend
+    rem -------------
+    rem ------------
 classend

@@ -1,7 +1,7 @@
 
 wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"BBjStandardGrid")
 
-grid! = wnd!.addGrid(100,10,10,780,500)
+grid! = wnd!.addGrid(100,1001,1002,10,10,780,500,$0000$)
 
 selection! = wnd!.addStaticText(101,10,530,400,30,"")
 

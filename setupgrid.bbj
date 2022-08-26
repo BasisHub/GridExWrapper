@@ -11,6 +11,8 @@ ch=unt
 open (ch)inf.filename$
 dim rec$:inf.template$
 grid_vec! = new BBjVector()
+declare int rowcount!
+rowcount! = 0
 while 1
     read record (ch,end=*break)rec$
     grid_vec!.addItem(rec.cdnumber$)
@@ -25,12 +27,113 @@ while 1
     grid_vec!.addItem(rec.onhand$)
     grid_vec!.addItem(str(rec.cost:"####0.00"))
     grid_vec!.addItem(str(rec.retail:"####0.00"))
-    rowcount=rowcount+1
+    rowcount!=rowcount!+1
 wend
 
 grid!.setNumColumns(12)
-grid!.setNumRows(rowcount)
-grid!.setCellText(0,0,grid_vec!)
+grid!.setNumRows(rowcount!)
+grid!.setCellText(grid_vec!)
+grid!.setCellText(10,1,"Hello World")
+grid!.fillGridWithColumns(4)
+rem grid!.setMainGridBackColor(BBjAPI().makeColor(0,0,0))
+rem grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
+
+grid!.setHasRowHeader(1)
+grid!.setHasColumnHeader(1)
+columnHeader! = grid!.getColumnHeader()
+rowHeader! = grid!.getRowHeader()
+rowHeader!.setCellText(0,"0")
+rowHeader!.setCellText(1,"1")
+rowHeader!.setCellText(2,"2")
+rowHeader!.setCellText(3,"3")
+rowHeader!.setCellText(4,"4")
+
+grid!.clearRowHeader(0)
+
+columnHeader!.setCellText(0,"0")
+columnHeader!.setCellText(1,"1")
+columnHeader!.setCellText(2,"2")
+columnHeader!.setCellText(3,"3")
+columnHeader!.setCellText(4,"4")
+
+grid!.clearColumnHeader(0)
+
+grid!.setLineColor(BBjAPI().makeColor(150,150,255))
+
+rem grid!.setTopRow(4)
+
+rem grid!.setVerticalLinesVisible(1)
+rem grid!.setVerticalCellSpacing(100)
+
+rem grid!.setVerticalScrollable(1)
+rem grid!.setHorizontalScrollable(1)
+
+rem grid!.setToolTipText("ToolTip!")
+rem grid!.setToolTipText(0,"ID's")
+rem grid!.setToolTipText(0,1,"Eric stinkt")
+
+rem grid!.setSelectedCell(0,0)
+
+rem grid!.doLowerCaseWhenDisplaying(1)
+rem grid!.doLowerCaseWhenSaving(1)
+
+rem grid!.adjustSpacesWhenDisplaying(1,0,0,0,1)
+
+rem grid!.startEdit(0,0)
+rem grid!.setEditable(1)
+
+
+rem cell! = grid!.makeCell(0,5)
+rem cell!.setText("new cell")
+
+rem grid!.setCell(cell!)
+rem grid!.setRowGutter(100)
+rem grid!.setHasRowHeader(1)
+rem rheader! = grid!.getRowHeader()
+rem ? cheader!.getDefaultAlignment()
+
+rem grid!.setHasColumnHeader(1)
+rem cheader! = grid!.getColumnHeader()
+rem cheader!.setCellText(0,"Test")
+rem cheader!.setCellText(1,"Test 2")
+rem cheader!.setCellText(2,"Test 3")
+
+rem myImageManager!=BBjAPI().getSysGui().getImageManager()
+rem myImage!=myImageManager!.loadImageFromFile("testIcon.png")
+rem BBjAPI().getSysGui().addImageList(1,48,myImage!)
+
+rem cheader!.setCellIcon(1,0,0)
+
+rem cheader!.setCellForeColor(0,BBjAPI().makeColor(255,255,255))
+rem cheader!.setCellBackColor(0,BBjAPI().makeColor(0,0,0))
+
+
+rem cheader!.setCellStyle(1,BBjGrid.GRID_STYLE_CHECKED)
+rem cheader!.setCellBackColor(3,BBjAPI().makeColor(0,0,0))
+rem ? cheader!.getStringWidth("Test")
+rem cheader!.setToolTipText("ToolTipText")
+rem cheader!.setToolTipText(0,"HAHAHAHAHAH")
+
+rem cheader!.setDefaultAlignment(BBjGrid.GRID_ALIGN_RIGHT)
+rem cheader!.setCellAlignment(0,BBjGrid.GRID_ALIGN_LEFT)
+
+rem escape
+rem cheader!.setToolTipText("aaaaaaaaaaaaaaaaaa")
+
+rem rheader!.setCellText(2,"Row Header")
+rem rheader!.setCellBackColor(2,BBjAPI().makeColor(0,0,0))
+
+rem escape
+rem grid!.setColumnStyle(1,BBjGrid.GRID_STYLE_BUTTON_DOWN)
+rem grid!.setColumnStyle(2,BBjGrid.GRID_STYLE_BUTTON_UP)
+rem grid!.setColumnStyle(3,BBjGrid.GRID_STYLE_CHECKED)
+rem grid!.setColumnStyle(4,BBjGrid.GRID_STYLE_INPUTD)
+rem grid!.setColumnStyle(5,BBjGrid.GRID_STYLE_INPUTE)
+rem grid!.setColumnStyle(6,BBjGrid.GRID_STYLE_INPUTN)
+rem grid!.setColumnStyle(7,BBjGrid.GRID_STYLE_PASSWORD)
+rem grid!.setColumnStyle(8,BBjGrid.GRID_STYLE_TEXT)
+rem grid!.setColumnStyle(9,BBjGrid.GRID_STYLE_UNCHECKED)
+
 
 REM head_vec! = new BBjVector()
 REM head_vec!.addItem("CD Number")
@@ -51,3 +154,24 @@ REM grid!.setVerticalScrollable(1)
 REM grid!.setHorizontalScrollable(1)
 REM grid!.setSelectionMode(grid!.GRID_SELECT_ROW)
 REM grid!.deselectAllCells()
+
+
+rem method public void applyDefaultColumnFilter(BBjCustomEvent event!)
+rem declare GxColumn column!
+rem declare auto Boolean state!
+rem declare auto BBjString key!
+
+rem it! = #defaultColumnFilterState!.keySet().iterator()
+
+rem while it!.hasNext()
+rem     key! = it!.next()
+rem     state! = #defaultColumnFilterState!.get(key!) 
+rem     column! = #Grid!.getColumn(key!)
+rem     column!.setHidden(!state!)
+rem wend
+
+rem #Grid!.clearCallback(#Grid!.ON_GRID_READY())
+rem #Grid!.setCallback(#Grid!.ON_GRID_READY(),#this!,"onGridReady")
+rem #Grid!.render()
+rem Util.hideBusyIndicator()
+rem methodend

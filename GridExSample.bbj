@@ -11,6 +11,108 @@ grid! = new BBjGridExWrapper(gridex!)
 selection! = wnd!.addStaticText(101,10,530,400,30,"")
 
 CALL "setupgrid.bbj"
+grid!.fillGridWithColumns(4)
+rem grid!.setHasColumnHeader(0)
+
+?grid!.getCellText(0,3)
+
+grid!.setToolTipText("tooltips everywhere")
+grid!.getColumnHeader().setToolTipText("HEADER WOOP WOOP")
+grid!.getColumnHeader().setToolTipText(3,"YAYAYAYAYA")
+grid!.getColumnHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_RIGHT())
+grid!.getColumnHeader().setCellAlignment(0,BBjGridExWidget.GRID_ALIGN_CENTER())
+
+?grid!.getColumnHeader().getToolTipText()
+?grid!.getColumnHeader().getToolTipText(3)
+?grid!.getColumnHeader().getDefaultAlignment()
+?grid!.getColumnHeader().getCellAlignment(0)
+
+grid!.getColumnHeader().setCellText(0,"ID's")
+grid!.getColumnHeader().setCellText(1,"Songs")
+grid!.getColumnHeader().setCellText(2,"Artists")
+grid!.getColumnHeader().setCellText(3,"Album")
+
+?grid!.getColumnHeader().getCellText(0)
+?grid!.getColumnHeaderCellText(0)
+?grid!.getColumnHeader().getCellText(1)
+?grid!.getColumnHeader().getCellText(2)
+?grid!.getColumnHeader().getCellText(3)
+
+
+grid!.getColumnHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
+grid!.getColumnHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
+
+?grid!.getColumnHeader().getCellBackColor(0)
+?grid!.getColumnHeader().getCellForeColor(0)
+
+grid!.setRowHeight(0,100)
+grid!.setRowHeight(200)
+
+?grid!.getRowHeight(0)
+?grid!.getRowHeight(3)
+?grid!.getRowHeight()
+
+declare BBjVector v!
+
+v! = new BBjVector()
+v!.add("A")
+v!.add("B")
+v!.add("C")
+v!.add("D")
+v!.add("E")
+v!.add("F")
+
+grid!.setColumnHeaderText(v!)
+
+grid!.setHasRowHeader(1)
+
+grid!.getRowHeader().setCellText(0,"Row Header 1")
+grid!.getRowHeader().setCellText(1,"Row Header 4")
+grid!.getRowHeader().setCellText(2,"Row Header 3")
+grid!.getRowHeader().setCellText(3,"Row Header 2")
+
+grid!.getRowHeader().setToolTipText("ROWWWWWWW")
+grid!.getRowHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_CENTER())
+grid!.getRowHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
+grid!.getRowHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
+
+
+rem -----------------------
+grid!.setColumnBackColor(2,BBjAPI().makeColor(156,155,154))
+grid!.setColumnForeColor(2,BBjAPI().makeColor(255,255,255))
+
+?grid!.getColumnBackColor(2)
+?grid!.getColumnForeColor(2)
+
+grid!.setColumnHeaderBackColor(BBjAPI().makeColor(25,154,236))
+grid!.setColumnHeaderForeColor(BBjAPI().makeColor(255,255,255))
+
+?grid!.getColumnHeaderBackColor()
+?grid!.getColumnHeaderForeColor()
+
+grid!.setColumnHeaderCellForeColor(0,BBjAPI().makeColor(255,255,255))
+grid!.setColumnHeaderCellBackColor(0,BBjAPI().makeColor(0,0,0))
+
+?grid!.getColumnHeaderCellForeColor(0)
+?grid!.getColumnHeaderCellBackColor(0)
+
+grid!.setMainGridBackColor(BBjAPI().makeColor(0,0,0))
+grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
+
+?grid!.getMainGridBackColor()
+?grid!.getMainGridForeColor()
+rem -----------------------
+
+grid!.clearRowHeader()
+grid!.clearColumnHeader()
+
+grid!.deleteColumn(0)
+
+rem -----------------------
+
+rem myImageManager!=mySysGui!.getImageManager()
+rem myImage!=myImageManager!.loadImageFromFile("testIcon.png")
+rem BBjAPI().getSysGui().addImageList(1,48,myImage!)
 
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
 wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
