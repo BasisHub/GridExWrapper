@@ -48,7 +48,7 @@ rowHeader!.setCellText(2,"2")
 rowHeader!.setCellText(3,"3")
 rowHeader!.setCellText(4,"4")
 
-grid!.clearRowHeader(0)
+rem grid!.clearRowHeader(0)
 
 columnHeader!.setCellText(0,"0")
 columnHeader!.setCellText(1,"1")
@@ -56,7 +56,7 @@ columnHeader!.setCellText(2,"2")
 columnHeader!.setCellText(3,"3")
 columnHeader!.setCellText(4,"4")
 
-grid!.clearColumnHeader(0)
+rem grid!.clearColumnHeader(0)
 
 grid!.setLineColor(BBjAPI().makeColor(150,150,255))
 

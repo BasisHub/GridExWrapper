@@ -3,6 +3,7 @@ use com.basiscomponents.db.ResultSet
 use com.basiscomponents.db.DataRow
 
 use java.util.HashMap
+use java.util.ArrayList
 
 use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
 use ::BBjGridExWidget/GxColumns.bbj::GxDefaultColumnDefinition
@@ -29,6 +30,10 @@ class public BBjGridExWrapper
     field private HashMap tooltip! = new HashMap()
     field private HashMap backColor! = new HashMap()
     field private HashMap foreColor! = new HashMap()
+    field private ArrayList columnIndizes! = new ArrayList()
+
+    field private BBjVector hiddenColumns! = new BBjVector()
+    field private ArrayList hiddenRows! = new ArrayList()
 
     rem Callbacks
     field public static BBjNumber ON_GRID_DOUBLE_CLICK = 1
@@ -73,14 +78,16 @@ class public BBjGridExWrapper
         if #rec!.getColumnCount() < #columns! then
             #rec! = new DataRow()
             for i=0 to #columns!-1
-                #rec!.setFieldValue("C"+str(i),"")
-            next
+                columnKey! = "C" + str(i)
+                #rec!.setFieldValue(columnKey!,"")
+                #columnIndizes!.add(columnKey!)
+            next i
         endif
 
         if #rs!.size()>#rows! then
             for i=#rows! to #rs!.size()-1
                 #rs!.remove(#rs!.size())
-            next
+            next i
         else
             i = #rs!.size()
             while #rs!.size()<#rows!
@@ -372,7 +379,8 @@ class public BBjGridExWrapper
     methodend
     
     method public void setColumnWidth(int column!, int width!)
-        gridColumn! = #gridex!.getColumn("C" + str(column!))
+        columnKey! = str(#columnIndizes!.get(column!))
+        gridColumn! = #gridex!.getColumn(columnKey!)
         if gridColumn! <> null() then 
             gridColumn!.setWidth(width!)
         endif
@@ -410,7 +418,8 @@ class public BBjGridExWrapper
 
     method public void setRowHeight(int row!, int height!)
         #rowHeight!.put(row!,height!)
-        #gridex!.setRowHeight("C" + str(row!), height!)
+        columnKey! = str(#columnIndizes!.get(row!))
+        #gridex!.setRowHeight(columnKey!, height!)
         #gridex!.updateColumns()
     methodend
 
@@ -841,7 +850,7 @@ class public BBjGridExWrapper
     methodend
 
     method public void setColumnBackColor(int column!, BBjColor color!)
-        cname! = "C" + str(column!)
+        cname! = str(#columnIndizes!.get(column!))
         gridColumn! = #gridex!.getColumn(cname!)
 
         style! = new JsonObject()
@@ -858,9 +867,8 @@ class public BBjGridExWrapper
     methodend
 
     method public void setColumnForeColor(int column!, BBjColor color!)
-        cname! = "C" + str(column!)
+        cname! = str(#columnIndizes!.get(column!))
         gridColumn! = #gridex!.getColumn(cname!)
-        rem escape
 
         style! = new JsonObject()
         hex! = Util.converRgbToHex(color!)
@@ -937,7 +945,8 @@ class public BBjGridExWrapper
         classname! = "main" + "-BackColor"
         #gridex!.addStyle("." + classname! , style!)
         for i = 0 to columnCount! -1
-            column! = #gridex!.getColumn("C" + str(i))
+            columnKey! = str(#columnIndizes!.get(i))
+            column! = #gridex!.getColumn(columnKey!)
             column!.getCellClass().add(classname!)
         next i 
 
@@ -963,7 +972,8 @@ class public BBjGridExWrapper
         classname! = "main" + "-BackColor"
         #gridex!.addStyle("." + classname! , style!)
         for i = 0 to columnCount! -1
-            column! = #gridex!.getColumn("C" + str(i))
+            columnKey! = str(#columnIndizes!.get(i))
+            column! = #gridex!.getColumn(columnKey!)
             column!.getCellClass().add(classname!)
         next i 
 
@@ -1236,7 +1246,8 @@ rem         escape
     method public void setToolTipText(int col!, String text!)
         columnManager! = #gridex!.getColumnsManager()
 
-        column! = columnManager!.getColumn("C" + str(col!))
+        columnKey! = str(#columnIndizes!.get(col!))
+        column! = columnManager!.getColumn(columnKey!)
         #tooltip!.put(col!,text!)
 
         exp! = "return '" + text! +"'"
@@ -1294,7 +1305,8 @@ rem         escape
         it! = v!.iterator()
         while it!.hasNext()
             val! = it!.next()
-            #rs!.get(r!).setFieldValue("C"+str(c!),val!)
+            columnKey! = str(#columnIndizes!.get(c!))
+            #rs!.get(r!).setFieldValue(columnKey!,val!)
             c! = c! + 1
             if c! > #columns! -1 then
                 c! =0
@@ -1423,71 +1435,154 @@ rem         escape
     methodend
 
     method public void deleteColumn(int column!)
-        #gridex!.removeColumn("C" + str(column!))
+
+        columnKey! = str(#columnIndizes!.get(column!)) 
+        #gridex!.removeColumn(columnKey!)
+        #columnIndizes!.remove(column!)
+
         #gridex!.updateColumns()
     methodend
 
     method public BBjVector getHiddenColumns()
+        methodret #hiddenColumns!
     methodend
 
     method public BBjVector getHiddenColumns(int startColumn!, int endColumn!)
+        declare BBjVector vec!
+        vec! = new BBjVector()
+
+        for i = startColumn! to endColumn!
+            if i < #hiddenColumns!.size() then 
+                vec!.add(#hiddenColumns!.get(i))
+            endif
+        next i
+
+        methodret vec!
     methodend
 
     method public BBjVector getHiddenRows()
+        rem declare BBjVector vec! 
+        rem vec! = new BBjVector()
+
+        rem for i = 0 to #hiddenRows!.size() -1
+        rem     vec!.add(i)
+        rem next i
+
+        rem methodret vec! 
+        methodret null()
     methodend
 
     method public BBjVector getHiddenRows(int startRow!, int endRow!)
+        rem declare BBjVector vec!
+        rem vec! = new BBjVector()
+
+        rem if startRow! > #hiddenRows!.size() or endRow! > #hiddenRows!.size() then methodret
+
+        rem for i = startRow! to endRow!
+        rem     vec!.add(i) 
+        rem next i
+
+        rem methodret vec!
+        methodret null()
     methodend
 
     method public int getMaxColumns()
+        methodret 0
     methodend
 
     method public int getMaxRows()
+        methodret 0
     methodend
 
     method public int getRowModelIndexFromViewIndex(int index!)
+        methodret 0
     methodend
 
     method public int getRowViewIndexFromModelIndex(int index!)
+        methodret 0
     methodend
 
     method public int getSortByMultipleColumns()
+        methodret 0
     methodend
 
     method public void hideColumn(int column!)
+        columnKey! = str(#columnIndizes!.get(column!))
+        col! = #gridex!.getColumn(columnKey!)
+        col!.setHidden(1)
+        #hiddenColumns!.add(column!)
+        #gridex!.updateColumns()
     methodend
 
     method public void hideColumns(BBjVector columns!)
+        for i = 0 to columns!.size() -1
+            columnKey! = str(#columnIndizes!.get(num(columns!.get(i))))
+            col! = #gridex!.getColumn(columnKey!)
+            col!.setHidden(1)
+            #hiddenColumns!.add(i)
+        next i
+        #gridex!.updateColumns()
     methodend
 
     method public void hideColumns(int startColumn!, int endColumn!)
+        for i = startColumn! to endColumn!
+            columnKey! = str(#columnIndizes!.get(i))
+            col! = #gridex!.getColumn(columnKey!)
+            col!.setHidden(1)
+            #hiddenColumns!.add(i)
+        next i
+        #gridex!.updateColumns()
     methodend
 
     method public void hideRow(int row!)
+        rem if #rs!.isEmpty() or row! > #rs!.size()  then methodret
+        rem dr! = #rs!.get(row!)
+        rem #rs!.remove(row!)
+        rem #hiddenRows!.add(dr!)
     methodend
 
     method public void hideRows(BBjVector rows!)
+        rem if #rs!.isEmpty() then methodret
+        rem for i = rows!.size() - 1 to 0 step -1
+        rem     index! = num(rows!.get(i))
+        rem     if index! > #rs!.size() then next i
+        rem     dr! = #rs!.get(index!)
+        rem     #rs!.remove(index!)
+        rem     #hiddenRows!.add(dr!)
+        rem next i
     methodend
 
     method public void hideRows(int startRow!, int endRow!)
+        rem if #rs!.isEmpty() then methodret
+        rem for i = endRow! to startRow! step -1
+        rem     dr! = #rs!.get(i)
+        rem     #rs!.remove(i)
+        rem     #hiddenRows!.add(dr!)
+        rem next i
     methodend
 
     method public void insertColumn(int index!)
+        rem really troublesome bc i need to remove and readd all columns which removes all styling etc
     methodend
 
     method public void insertRow(int index!)
+        #rs!.insertItem(index!, new DataRow())
     methodend
 
-    method public Boolean isColumnHidden()
+    method public Boolean isColumnHidden(int column!)
+        methodret 0
     methodend
     
     method public Boolean isColumnSortedByReleatedData(int columnIndex!)
+        methodret 0
     methodend
 
     method public Boolean isColmnUserSortable(int columnIndex!)
+        methodret 0
     methodend
 
     method public Boolean isRowHidden(int row!)
+        methodret 0
     methodend
 
     method public void resort()
@@ -1515,24 +1610,66 @@ rem         escape
     methodend
 
     method public void unhideColumn(int column!)
+        columnKey! = str(#columnIndizes!.get(column!))
+        col! = #gridex!.getColumn(columnKey!)
+        col!.setHidden(0)
+        #hiddenColumns!.remove(column!)
+        #gridex!.updateColumns()
     methodend
 
     method public void unhideColumns()
+        for i = 0 to #hiddenColumns!.size() -1
+            columnKey! = str(#columnIndizes!.get(num(#hiddenColumns!.get(i))))
+            col! = #gridex!.getColumn(columnKey!)
+            col!.setHidden(0)
+        next i
+        #gridex!.updateColumns()    
+        #hiddenColumns!.clear()
     methodend
 
-    method public void unhideColumns(BBjVector columns!)
+    method public void unhideColumns(BBjVector columns!)    
+        for i = 0 to columns!.size() -1
+            columnKey! = str(#columnIndizes!.get(num(columns!.get(i))))
+            col! = #gridex!.getColumn(columnKey!)
+            col!.setHidden(0)
+            #hiddenColumns!.remove(columnKey!)
+        next i
+        #gridex!.updateColumns()    
     methodend
 
     method public void unhideColumns(int startColumn!, int endColumn!)
+        for i = startColumn! to endColumn!
+            columnKey! = str(#columnIndizes!.get(i))
+            col! = #gridex!.getColumn(columnKey!)
+            col!.setHidden(0)
+            #hiddenColumns!.remove(columnKey!)
+        next i
+        #gridex!.updateColumns()    
     methodend
 
     method public void unhideRow(int row!)
+        rem if #hiddenRows!.isEmpty() then methodret
+        rem #rs!.add(row!,cast(DataRow,#hiddenRows!.get(row!)))
+        rem #hiddenRows!.remove(row!)
     methodend
 
     method public void unhideRows()
+        rem if #hiddenRows!.isEmpty() then methodret
+
+        rem for i = 0 to #hiddenRows!.size() -1 
+        rem     #rs!.add(i,cast(DataRow,#hiddenRows!.get(i)))
+        rem next i
+        rem #hiddenRows!.clear()
     methodend
 
     method public void unhideRows(BBjVector rows!)
+        rem if #hiddenRows!.isEmpty() then methodret
+
+        rem for i = rows!.size() - 1 to 0 step -1
+        rem     index! = num(rows!.get(i))
+        rem     #rs!.add(index!,cast(DataRow,#hiddenRows!.get(index!)))
+        rem     #hiddenRows!.remove(i)
+        rem next i
     methodend
 
     method public void unsort()
@@ -1542,12 +1679,21 @@ rem         escape
     methodend
 
     method public void clear()
+        for i = 0 to #columns! -1
+            cname! = "C" + str(i) 
+            column! = #gridex!.getColumn(cname!)
+            column!.getHeaderClass().clear()      
+            #cHeader!.setCellText(i,"")  
+        next i
+        #gridex!.clearData()
+        #gridex!.clearColumnDefinitions()
     methodend
 
     method public void clear(int row!, int column!)
     methodend
 
     method public void clearGrid()
+        #clear()
     methodend
 
     method public void clearImage()
@@ -1557,6 +1703,7 @@ rem         escape
     methodend
 
     method public void clearMainGrid()
+        #gridex!.clearData()
     methodend
 
     method public void clearRelated()
@@ -1572,39 +1719,50 @@ rem         escape
     methodend
 
     method public void clearText()
+        #gridex!.clearData()
     methodend
 
     method public void clearText(int row!, int column!)
     methodend
 
     method public String getCellMask(int row!, int column!)
+        methodret ""
     methodend
 
     method public String getCellRelated(int row!, int column!)
+        methodret ""
     methodend
 
     method public String getCellRestore(int row!, int column!)
+        methodret ""
     methodend
 
     method public Boolean getInputNBeep()
+        methodret 0
     methodend
 
     method public String getInputNCommaCharacter()
+        methodret ""
     methodend
 
     method public String getInputNDotCharacter()
+        methodret ""
     methodend
 
     method public Boolean getInputNUseEditCommas()
+        methodret 0
     methodend
 
     method public String getRowHeaderCellText(int row!)
+        methodret ""
     methodend
 
     method public int getRowHeaderWidth()
+        methodret 0
     methodend
 
     method public int getUpdateCached()
+        methodret 0
     methodend
 
     method public void restoreCell(int row!, int col!)
@@ -1668,27 +1826,33 @@ rem         escape
     methodend
 
     method public int isCellEditable(int row!, int column!)
+        methodret 0
     methodend
 
     method public void setCellEditable(int row!, int column!, int editable!)
     methodend
 
     method public int isGridEditable()
+        methodret 0
     methodend
     
     method public void setGridEditable()
     methodend
 
     method public int getCellState(int row!, int column!)
+        methodret 0
     methodend
 
     method public int getCellStyle(int row!, int column!)
+        methodret 0
     methodend
 
     method public int getRowHeaderCellStyle(int row!)
+        methodret 0
     methodend
 
     method public int getRowHeaderStyle()
+        methodret 0
     methodend
 
     method public void setCellState(int row!, int column!, int state!)
@@ -1707,9 +1871,11 @@ rem         escape
     methodend
 
     method public int getRowHeaderVerticalAlignment()
+        methodret 0
     methodend
 
     method public int getRowHeaderCellVerticalAlignment(int row!)
+        methodret 0
     methodend
 
     method public void setRowHeaderVerticalAlignment(int align!)
@@ -1722,9 +1888,11 @@ rem         escape
     methodend
 
     method public Boolean getCellHasQuery(int row!, int column!)
+        methodret 0
     methodend
 
     method public Boolean getColumnHasQuery(int column!)
+        methodret 0
     methodend
 
     method public void setCellHasQuery(int row!, int column!, Boolean hasQuery!)
@@ -1734,21 +1902,27 @@ rem         escape
     methodend
 
     method public BBjColor getCellBackColor(int row!, int column!)
+        methodret null()
     methodend
 
     method public BBjColor getCellForeColor(int row!, int column!)
+        methodret null()
     methodend
 
     method public BBjColor getRowHeaderBackColor()
+        methodret null()
     methodend
 
     method public BBjColor getRowHeaderCellBackColor(int row!)
+        methodret null()
     methodend
 
     method public BBjColor getRowHeaderCellForeColor(int row!)
+        methodret null()
     methodend
 
     method public BBjColor getRowHeaderForeColor()
+        methodret null()
     methodend
 
     method public void setCellBackColor(int row!, int column!, BBjColor color!)
@@ -1776,12 +1950,15 @@ rem         escape
     methodend
 
     method public BBjFont getCellFont(int row!, int column!)
+        methodret null()
     methodend
 
     method public BBjFont getRowFont(int row!)
+        methodret null()
     methodend
    
     method public BBjFont getRowHeaderFont()
+        methodret null()
     methodend
 
     method public void setCellFont(int row!, int column!, BBjFont font!)
@@ -1794,15 +1971,19 @@ rem         escape
     methodend
 
     method public BBjComboBox getCellListControl(int row!, int column!)
+        methodret null()
     methodend
 
     method public int getCellListSelection(int row!, int column!)
+        methodret 0
     methodend
 
     method public BBjComboBox getColumnListControl(int column!)
+        methodret null()
     methodend
 
     method public int getColumnListSelection(int column!)
+        methodret 0
     methodend
 
     method public void setCellListControl(int row!, int column!, BBjComboBox list!)
@@ -1823,30 +2004,40 @@ rem         escape
     methodend
 
     method public void deleteRow(int index!)
+        #rs!.remove(index!)
+        #gridex!.setData(#rs!)
     methodend
 
     method public String getInsertErrorMessage()
+        methodret ""
     methodend
 
     method public String getInsertMessage()
+        methodret ""
     methodend
 
     method public String getRecord(int index!)
+        methodret ""
     methodend
 
     method public int getShowInsertMessage()
+        methodret 0
     methodend
 
     method public int getShowUpdateMessage()
+        methodret 0
     methodend
 
     method public String getUpdateBusyMessage()
+        methodret ""
     methodend
 
     method public String getUpdateDeletedMessage()
+        methodret ""
     methodend
 
     method public String getUpdateMessage()
+        methodret ""
     methodend
 
     method public void insertRow()
@@ -1890,6 +2081,4 @@ rem         escape
 
     method public void undoRowEdit()
     methodend
-    rem -------------
-    rem ------------
 classend

@@ -67,9 +67,9 @@ grid!.setColumnHeaderText(v!)
 grid!.setHasRowHeader(1)
 
 grid!.getRowHeader().setCellText(0,"Row Header 1")
-grid!.getRowHeader().setCellText(1,"Row Header 4")
+grid!.getRowHeader().setCellText(1,"Row Header 2")
 grid!.getRowHeader().setCellText(2,"Row Header 3")
-grid!.getRowHeader().setCellText(3,"Row Header 2")
+grid!.getRowHeader().setCellText(3,"Row Header 4")
 
 grid!.getRowHeader().setToolTipText("ROWWWWWWW")
 grid!.getRowHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_CENTER())
@@ -103,11 +103,46 @@ grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
 ?grid!.getMainGridForeColor()
 rem -----------------------
 
-grid!.clearRowHeader()
-grid!.clearColumnHeader()
+rem grid!.clearRowHeader()
+rem grid!.clearColumnHeader()
 
-grid!.deleteColumn(0)
+rem grid!.deleteColumn(0)
 
+rem grid!.setColumnBackColor(0,BBjAPI().makeColor(174,3,207))
+rem grid!.deleteRow(0)
+
+declare BBjVector vec!
+
+vec! = new BBjVector()
+vec!.add(0)
+vec!.add(1)
+vec!.add(2)
+
+rem grid!.hideColumn(0)
+rem grid!.hideColumns(vec!)
+rem grid!.hideColumns(0,2)
+
+rem ? grid!.getHiddenColumns()
+
+rem grid!.unhideColumn(0)
+rem grid!.unhideColumns()
+rem grid!.unhideColumns(vec!)
+rem grid!.unhideColumns(0,2)
+
+rem Do not work
+rem grid!.hideRow(0)
+rem grid!.hideRow(0)
+rem grid!.hideRows(vec!)
+rem grid!.hideRows(0,2)
+
+rem ? grid!.getHiddenRows()
+
+rem grid!.unhideRow(0)
+rem grid!.unhideRow(0)
+rem grid!.unhideRows()
+
+grid!.insertRow(0)
+grid!.clear()
 rem -----------------------
 
 rem myImageManager!=mySysGui!.getImageManager()
