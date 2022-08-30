@@ -16,9 +16,9 @@ rem grid!.setHasColumnHeader(0)
 
 ?grid!.getCellText(0,3)
 
-grid!.setToolTipText("tooltips everywhere")
-grid!.getColumnHeader().setToolTipText("HEADER WOOP WOOP")
-grid!.getColumnHeader().setToolTipText(3,"YAYAYAYAYA")
+grid!.setToolTipText("Tooltip Text")
+grid!.getColumnHeader().setToolTipText("Header Tooltip")
+grid!.getColumnHeader().setToolTipText(3,"Different Header Tooltip")
 grid!.getColumnHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_RIGHT())
 grid!.getColumnHeader().setCellAlignment(0,BBjGridExWidget.GRID_ALIGN_CENTER())
 
@@ -27,10 +27,10 @@ grid!.getColumnHeader().setCellAlignment(0,BBjGridExWidget.GRID_ALIGN_CENTER())
 ?grid!.getColumnHeader().getDefaultAlignment()
 ?grid!.getColumnHeader().getCellAlignment(0)
 
-grid!.getColumnHeader().setCellText(0,"ID's")
-grid!.getColumnHeader().setCellText(1,"Songs")
-grid!.getColumnHeader().setCellText(2,"Artists")
-grid!.getColumnHeader().setCellText(3,"Album")
+grid!.getColumnHeader().setCellText(0,"Col 0")
+grid!.getColumnHeader().setCellText(1,"Col 1")
+grid!.getColumnHeader().setCellText(2,"Col 2")
+grid!.getColumnHeader().setCellText(3,"Col 3")
 
 ?grid!.getColumnHeader().getCellText(0)
 ?grid!.getColumnHeaderCellText(0)
@@ -55,12 +55,10 @@ grid!.setRowHeight(200)
 declare BBjVector v!
 
 v! = new BBjVector()
-v!.add("A")
-v!.add("B")
-v!.add("C")
-v!.add("D")
-v!.add("E")
-v!.add("F")
+v!.add("ID's")
+v!.add("Songs")
+v!.add("Artists")
+v!.add("Album")
 
 grid!.setColumnHeaderText(v!)
 
@@ -71,7 +69,7 @@ grid!.getRowHeader().setCellText(1,"Row Header 2")
 grid!.getRowHeader().setCellText(2,"Row Header 3")
 grid!.getRowHeader().setCellText(3,"Row Header 4")
 
-grid!.getRowHeader().setToolTipText("ROWWWWWWW")
+grid!.getRowHeader().setToolTipText("Row Header Tooltip")
 grid!.getRowHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_CENTER())
 grid!.getRowHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
 grid!.getRowHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
@@ -145,12 +143,8 @@ grid!.insertRow(0)
 grid!.clear()
 rem -----------------------
 
-rem myImageManager!=mySysGui!.getImageManager()
-rem myImage!=myImageManager!.loadImageFromFile("testIcon.png")
-rem BBjAPI().getSysGui().addImageList(1,48,myImage!)
-
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
-wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
+rem wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
 rem grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
 
 process_events

@@ -28,8 +28,8 @@ CALLBACK(ON_TOOL_BUTTON_PUSH,DoForwardMonth,CalendarContext,myFwdMonth!.getID())
 CALLBACK(ON_TOOL_BUTTON_PUSH,DoForwardYear,CalendarContext,myFwdYear!.getID())
 CALLBACK(ON_TOOL_BUTTON_PUSH,DoBackMonth,CalendarContext,myBackMonth!.getID())
 CALLBACK(ON_TOOL_BUTTON_PUSH,DoBackYear,CalendarContext,myBackYear!.getID())
-rem CALLBACK(ON_GRID_DOUBLE_CLICK,DoSelectDay,CalendarContext,calendarID!); rem Calendar!.getID() 
-rem CALLBACK(ON_GRID_MOUSE_DOWN,DoHighlightDay,CalendarContext,calendarID!); rem Calendar!.getID()
+rem CALLBACK(ON_GRID_DOUBLE_CLICK,DoSelectDay,CalendarContext,calendarID!);  
+rem CALLBACK(ON_GRID_MOUSE_DOWN,DoHighlightDay,CalendarContext,calendarID!); 
 CALLBACK(ON_CLOSE,DoAppClose,CalendarContext)
 
 REM Process Events
@@ -262,7 +262,7 @@ Calendar!.setColumnHeaderText(myVector!)
 Calendar!.setColumnHeaderForeColor(blueColor!)
 
 REM Set the attributes for the current date (static text control)
-LET CurrDate! = MainWindow!.addStaticText(txtDate,45,3,90,20,"")
+LET CurrDate! = MainWindow!.addStaticText(txtDate,45,4,90,20,"")
 CurrDate!.setClientEdge(mySysGui!.TRUE)
 CurrDate!.setForeColor(blueColor!)
 
