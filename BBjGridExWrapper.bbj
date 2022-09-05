@@ -64,6 +64,7 @@ class public BBjGridExWrapper
                 count! = count! + 1
             wend
         endif
+        #gridex!.updateColumns()
     methodend
 
     method public int isUserResizable()
@@ -1260,12 +1261,14 @@ rem         escape
 
     method public void setHasColumnHeader(Boolean header!)
         #showColumnHeader! = header!
-        options! = #gridex!.getOptions() 
+        options! = #gridex!.getOptions()
+        
         if header! then 
-            options!.setHeaderHeight(25)
+            options!.setHeaderHeight(50)
         else
             options!.setHeaderHeight(0)
         endif
+        #gridex!.render()
     methodend
 
     method public void setHasRowHeader(Boolean header!)
@@ -1570,6 +1573,7 @@ rem         escape
     methodend
 
     method public Boolean isColumnHidden(int column!)
+        if #hiddenColumns!.contains(column!) then methodret 1
         methodret 0
     methodend
     
@@ -1682,7 +1686,9 @@ rem         escape
         for i = 0 to #columns! -1
             cname! = "C" + str(i) 
             column! = #gridex!.getColumn(cname!)
-            column!.getHeaderClass().clear()      
+            if column! <> null() then  
+                column!.getHeaderClass().clear()
+            endif      
             #cHeader!.setCellText(i,"")  
         next i
         #gridex!.clearData()
@@ -1817,9 +1823,20 @@ rem         escape
     methodend
 
     method public void setRowHeaderCellText(int row!, String text!)
+        #rHeader!.setCellText(row!,text!)
     methodend
 
     method public void setRowHeaderText(BBjVector strings!)
+        if #rs!.isEmpty() then methodret
+        dr! = #rs!.get(0)
+      
+
+        for i = 0 to #rows! -1
+            rem to make sure that we don't run into a index out of bounds
+            if i <= strings!.size() -1 
+                #rHeader!.setCellText(i,str(strings!.get(i)))
+            endif
+        next i
     methodend
 
     method public void setUpdateCached(Boolean update!)
@@ -1910,7 +1927,7 @@ rem         escape
     methodend
 
     method public BBjColor getRowHeaderBackColor()
-        methodret null()
+        methodret cast(BBjColor,#backColor!.get("RH"))
     methodend
 
     method public BBjColor getRowHeaderCellBackColor(int row!)
@@ -1922,7 +1939,7 @@ rem         escape
     methodend
 
     method public BBjColor getRowHeaderForeColor()
-        methodret null()
+        methodret cast(BBjColor,#foreColor!.get("RH"))
     methodend
 
     method public void setCellBackColor(int row!, int column!, BBjColor color!)
@@ -1938,15 +1955,35 @@ rem         escape
     methodend
 
     method public void setRowHeaderBackColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+
+        #backColor!.put("RH",color!)
+        
+        dr! = #rs!.get(0)
+
+        if dr!.contains("RH") then 
+            #rHeader!.setCellBackColor(0,color!)    
+
+        endif
     methodend
 
     method public void setRowHeaderCellBackColor(int row!, BBjColor color!)
+        #rHeader!.setCellBackColor(row!,color!)
     methodend
 
     method public void setRowHeaderCellForeColor(int row!, BBjColor color!)
+        #rHeader!.setCellBackColor(row!,color!)
     methodend
 
     method public void setRowHeaderForeColor(BBjColor color!)
+        if #rs!.isEmpty() then methodret
+
+        #foreColor!.put("RH",color!)
+        
+        dr! = #rs!.get(0)
+        if dr!.contains("RH") then 
+            #rHeader!.setCellForeColor(0,color!)    
+        endif
     methodend
 
     method public BBjFont getCellFont(int row!, int column!)

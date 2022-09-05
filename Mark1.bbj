@@ -1,0 +1,106 @@
+
+selector! = new FileMaintenance()
+process_events
+
+class public FileMaintenance
+    field private BBjNumber guichan
+    field private BBjSysGui sysgui!
+    field private BBjTopLevelWindow mainWin!
+        field private BBjStandardGrid sfdGrid!
+            field private BBjVector headers!
+        field private BBjButton bClose!
+    
+    method public FileMaintenance()
+        #guichan = unt
+        open(#guichan)"X0"
+        
+        #sysgui! = BBjApi().getSysGui()
+        #mainWin! = #sysgui!.addWindow(#sysgui!.getAvailableContext(),25,50,553,371,"File Maintenance",$00090012$)
+        #mainWin!.setCallback(#mainWin!.ON_CLOSE,#this!,"cb_mainwinclose")
+
+        #bClose! = #mainWin!.addButton(#mainWin!.getAvailableControlID(),484,7,55,25,"&Close")
+        #bClose!.setCallback(#bClose!.ON_BUTTON_PUSH,#this!,"cb_closepressed")
+        
+        #sfdGrid! = #mainWin!.addGrid(#mainWin!.getAvailableControlID(),14,112,525,236,$8980$,9,4)
+        #sfdGrid!.setShouldHighlightSelectedRow(1)
+        
+        #headers! = #sysgui!.makeVector()
+        #headers!.addItem("CDNUMBER")
+        #headers!.addItem("ARTIST")
+        #headers!.addItem("TITLE")
+        #headers!.addItem("LABEL")
+        
+        #sfdGrid!.setColumnWidth(0,100)
+        #sfdGrid!.setColumnWidth(1,100)
+        #sfdGrid!.setColumnWidth(2,100)
+        #sfdGrid!.setColumnWidth(3,100)
+        
+        #sfdGrid!.setHasColumnHeader(1)
+        #sfdGrid!.setColumnHeaderHeight(25)
+        #sfdGrid!.setRowHeight(20)
+        #sfdGrid!.setColumnAlignment(1,#sfdGrid!.GRID_ALIGN_LEFT)
+        #sfdGrid!.setSelectedRow(0)
+        #sfdGrid!.setCallback(#sfdGrid!.ON_GRID_DOUBLE_CLICK,#this!,"cb_gridclicked")
+        #populateGridData()
+        
+        #mainWin!.setVisible(1)
+    methodend
+    
+    method public static java.util.Collection getHeaderRecords()
+        declare BBjVector rows!
+        rows! = new BBjVector()
+        sqlopen(1)"CDStore"
+        sqlchan = 1
+        
+        sb! = new StringBuilder()
+        sb!.append("select * from CDINVENTORY")
+        sqlprep(sqlchan)sb!.toString()
+        sqlexec(sqlchan)
+        
+        dim row$:sqltmpl(sqlchan)
+        while(1)
+            row$ = sqlfetch(sqlchan,err=*break)
+            
+            rows!.addItem(cvs(row.CDNUMBER$,3))
+            rows!.addItem(cvs(row.ARTIST$,3))
+            rows!.addItem(cvs(row.TITLE$,3))
+            rows!.addItem(cvs(row.LABEL$,3))
+        wend
+                
+        methodret rows! 
+    methodend
+    
+    method private void populateGridData()
+        #sfdGrid!.clearGrid()
+        
+        gridData! = #getHeaderRecords()
+        
+        #sfdGrid!.setNumRows(5)
+        #sfdGrid!.setColumnHeaderText(#headers!)
+        #sfdGrid!.setCellText(0,0,gridData!)
+    methodend
+    
+    method private void showForm()
+        #formWin!.setVisible(1)
+    methodend
+    
+    method private void hideForm()
+        #formWin!.setVisible(0)
+    methodend
+    
+    method public void editRecord()
+        v=MSGBOX("Edit record")
+    methodend
+    
+    method public void cb_mainwinclose(BBjCloseEvent e!)
+        release
+    methodend
+    
+    method public void cb_closepressed(BBjButtonPushEvent e!)
+        release
+    methodend
+    
+    method public void cb_gridclicked(BBjGridDoubleClickEvent e!) 
+        #editRecord()
+    methodend
+classend

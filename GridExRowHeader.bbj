@@ -69,6 +69,7 @@ class public GridExRowHeader
 
     method public void setCellBackColor(int index!, BBjColor color!)
         column! = #gridex!.getColumn("RH")
+        if column! = null() then methodret
 
         style! = new JsonObject()
         hex! = Util.converRgbToHex(color!)
@@ -90,6 +91,7 @@ class public GridExRowHeader
 
     method public void setCellForeColor(int index!, BBjColor color!)
         column! = #gridex!.getColumn("RH")
+        if column! = null() then methodret
 
         style! = new JsonObject()
         hex! = Util.converRgbToHex(color!)

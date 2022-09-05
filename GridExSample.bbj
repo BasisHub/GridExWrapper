@@ -2,103 +2,115 @@ use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
 
 use ::BBjGridExWrapper.bbj::BBjGridExWrapper
 
-wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,800,600,"BBjGridExWidget")
+wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,1000,800,"BBjGridExWidget")
 
-gridex! = new BBjGridExWidget(wnd!,100,10,10,780,500)
+gridex! = new BBjGridExWidget(wnd!,100,10,10,980,500)
 
 grid! = new BBjGridExWrapper(gridex!)
 
-selection! = wnd!.addStaticText(101,10,530,400,30,"")
+rem selection! = wnd!.addStaticText(101,10,530,400,30,"")
+
+btnCH! = wnd!.addButton(4000,10,520,180,25,"Add/Remove Column Header")
+btnRH! = wnd!.addButton(4001,10,545,180,25,"Add/Remove Row Header")
+btnLimit! = wnd!.addButton(4002,10,570,180,25,"Show all/Only 4")
+btnClear! = wnd!.addButton(4003,10,595,180,25,"Clear Grid")
+btnToolTips! = wnd!.addButton(4004,10,620,180,25,"Add Tooltips")
+btnColors! = wnd!.addButton(4005,10,645,180,25,"Change Back and Fore Colors")
+btnHeaderTexts! = wnd!.addButton(4006,10,670,180,25,"Set Header Labels")
+
+btnCH!.setCallback(BBjAPI.ON_BUTTON_PUSH,"CH")
+btnRH!.setCallback(BBjAPI.ON_BUTTON_PUSH,"RH")
+btnLimit!.setCallback(BBjAPI.ON_BUTTON_PUSH,"limit")
+btnClear!.setCallback(BBjAPI.ON_BUTTON_PUSH,"clear")
+btnToolTips!.setCallback(BBjAPI.ON_BUTTON_PUSH,"tooltips")
+btnColors!.setCallback(BBjAPI.ON_BUTTON_PUSH,"colors")
+btnHeaderTexts!.setCallback(BBjAPI.ON_BUTTON_PUSH,"headerTexts")
 
 CALL "setupgrid.bbj"
-grid!.fillGridWithColumns(4)
-rem grid!.setHasColumnHeader(0)
 
-?grid!.getCellText(0,3)
+rem grid!.setToolTipText("Tooltip Text")
+rem grid!.getColumnHeader().setToolTipText("Header Tooltip")
+rem grid!.getColumnHeader().setToolTipText(3,"Different Header Tooltip")
+rem grid!.getColumnHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_RIGHT())
+rem grid!.getColumnHeader().setCellAlignment(0,BBjGridExWidget.GRID_ALIGN_CENTER())
 
-grid!.setToolTipText("Tooltip Text")
-grid!.getColumnHeader().setToolTipText("Header Tooltip")
-grid!.getColumnHeader().setToolTipText(3,"Different Header Tooltip")
-grid!.getColumnHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_RIGHT())
-grid!.getColumnHeader().setCellAlignment(0,BBjGridExWidget.GRID_ALIGN_CENTER())
+rem ?grid!.getColumnHeader().getToolTipText()
+rem ?grid!.getColumnHeader().getToolTipText(3)
+rem ?grid!.getColumnHeader().getDefaultAlignment()
+rem ?grid!.getColumnHeader().getCellAlignment(0)
 
-?grid!.getColumnHeader().getToolTipText()
-?grid!.getColumnHeader().getToolTipText(3)
-?grid!.getColumnHeader().getDefaultAlignment()
-?grid!.getColumnHeader().getCellAlignment(0)
+rem grid!.getColumnHeader().setCellText(0,"Col 0")
+rem grid!.getColumnHeader().setCellText(1,"Col 1")
+rem grid!.getColumnHeader().setCellText(2,"Col 2")
+rem grid!.getColumnHeader().setCellText(3,"Col 3")
 
-grid!.getColumnHeader().setCellText(0,"Col 0")
-grid!.getColumnHeader().setCellText(1,"Col 1")
-grid!.getColumnHeader().setCellText(2,"Col 2")
-grid!.getColumnHeader().setCellText(3,"Col 3")
-
-?grid!.getColumnHeader().getCellText(0)
-?grid!.getColumnHeaderCellText(0)
-?grid!.getColumnHeader().getCellText(1)
-?grid!.getColumnHeader().getCellText(2)
-?grid!.getColumnHeader().getCellText(3)
+rem ?grid!.getColumnHeader().getCellText(0)
+rem ?grid!.getColumnHeaderCellText(0)
+rem ?grid!.getColumnHeader().getCellText(1)
+rem ?grid!.getColumnHeader().getCellText(2)
+rem ?grid!.getColumnHeader().getCellText(3)
 
 
-grid!.getColumnHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
-grid!.getColumnHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
+rem grid!.getColumnHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
+rem grid!.getColumnHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
 
-?grid!.getColumnHeader().getCellBackColor(0)
-?grid!.getColumnHeader().getCellForeColor(0)
+rem ?grid!.getColumnHeader().getCellBackColor(0)
+rem ?grid!.getColumnHeader().getCellForeColor(0)
 
-grid!.setRowHeight(0,100)
-grid!.setRowHeight(200)
+rem grid!.setRowHeight(0,100)
+rem grid!.setRowHeight(200)
 
-?grid!.getRowHeight(0)
-?grid!.getRowHeight(3)
-?grid!.getRowHeight()
+rem ?grid!.getRowHeight(0)
+rem ?grid!.getRowHeight(3)
+rem ?grid!.getRowHeight()
 
-declare BBjVector v!
+rem declare BBjVector v!
 
-v! = new BBjVector()
-v!.add("ID's")
-v!.add("Songs")
-v!.add("Artists")
-v!.add("Album")
+rem v! = new BBjVector()
+rem v!.add("ID's")
+rem v!.add("Songs")
+rem v!.add("Artists")
+rem v!.add("Album")
 
-grid!.setColumnHeaderText(v!)
+rem grid!.setColumnHeaderText(v!)
 
-grid!.setHasRowHeader(1)
+rem grid!.setHasRowHeader(1)
 
-grid!.getRowHeader().setCellText(0,"Row Header 1")
-grid!.getRowHeader().setCellText(1,"Row Header 2")
-grid!.getRowHeader().setCellText(2,"Row Header 3")
-grid!.getRowHeader().setCellText(3,"Row Header 4")
+rem grid!.getRowHeader().setCellText(0,"Row Header 1")
+rem grid!.getRowHeader().setCellText(1,"Row Header 2")
+rem grid!.getRowHeader().setCellText(2,"Row Header 3")
+rem grid!.getRowHeader().setCellText(3,"Row Header 4")
 
-grid!.getRowHeader().setToolTipText("Row Header Tooltip")
-grid!.getRowHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_CENTER())
-grid!.getRowHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
-grid!.getRowHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
+rem grid!.getRowHeader().setToolTipText("Row Header Tooltip")
+rem grid!.getRowHeader().setDefaultAlignment(BBjGridExWidget.GRID_ALIGN_CENTER())
+rem grid!.getRowHeader().setCellBackColor(0,BBjAPI().makeColor(100,101,102))
+rem grid!.getRowHeader().setCellForeColor(0,BBjAPI().makeColor(255,255,255))
 
 
 rem -----------------------
-grid!.setColumnBackColor(2,BBjAPI().makeColor(156,155,154))
-grid!.setColumnForeColor(2,BBjAPI().makeColor(255,255,255))
+rem grid!.setColumnBackColor(2,BBjAPI().makeColor(156,155,154))
+rem grid!.setColumnForeColor(2,BBjAPI().makeColor(255,255,255))
 
-?grid!.getColumnBackColor(2)
-?grid!.getColumnForeColor(2)
+rem ?grid!.getColumnBackColor(2)
+rem ?grid!.getColumnForeColor(2)
 
-grid!.setColumnHeaderBackColor(BBjAPI().makeColor(25,154,236))
-grid!.setColumnHeaderForeColor(BBjAPI().makeColor(255,255,255))
+rem grid!.setColumnHeaderBackColor(BBjAPI().makeColor(25,154,236))
+rem grid!.setColumnHeaderForeColor(BBjAPI().makeColor(255,255,255))
 
-?grid!.getColumnHeaderBackColor()
-?grid!.getColumnHeaderForeColor()
+rem ?grid!.getColumnHeaderBackColor()
+rem ?grid!.getColumnHeaderForeColor()
 
-grid!.setColumnHeaderCellForeColor(0,BBjAPI().makeColor(255,255,255))
-grid!.setColumnHeaderCellBackColor(0,BBjAPI().makeColor(0,0,0))
+rem grid!.setColumnHeaderCellForeColor(0,BBjAPI().makeColor(255,255,255))
+rem grid!.setColumnHeaderCellBackColor(0,BBjAPI().makeColor(0,0,0))
 
-?grid!.getColumnHeaderCellForeColor(0)
-?grid!.getColumnHeaderCellBackColor(0)
+rem ?grid!.getColumnHeaderCellForeColor(0)
+rem ?grid!.getColumnHeaderCellBackColor(0)
 
-grid!.setMainGridBackColor(BBjAPI().makeColor(0,0,0))
-grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
+rem grid!.setMainGridBackColor(BBjAPI().makeColor(0,0,0))
+rem grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
 
-?grid!.getMainGridBackColor()
-?grid!.getMainGridForeColor()
+rem ?grid!.getMainGridBackColor()
+rem ?grid!.getMainGridForeColor()
 rem -----------------------
 
 rem grid!.clearRowHeader()
@@ -109,18 +121,20 @@ rem grid!.deleteColumn(0)
 rem grid!.setColumnBackColor(0,BBjAPI().makeColor(174,3,207))
 rem grid!.deleteRow(0)
 
-declare BBjVector vec!
+rem declare BBjVector vec!
 
-vec! = new BBjVector()
-vec!.add(0)
-vec!.add(1)
-vec!.add(2)
+rem vec! = new BBjVector()
+rem vec!.add(0)
+rem vec!.add(1)
+rem vec!.add(2)
 
 rem grid!.hideColumn(0)
 rem grid!.hideColumns(vec!)
 rem grid!.hideColumns(0,2)
 
 rem ? grid!.getHiddenColumns()
+
+rem ? grid!.isColumnHidden(0)
 
 rem grid!.unhideColumn(0)
 rem grid!.unhideColumns()
@@ -139,16 +153,103 @@ rem grid!.unhideRow(0)
 rem grid!.unhideRow(0)
 rem grid!.unhideRows()
 
-grid!.insertRow(0)
-grid!.clear()
+rem grid!.insertRow(0)
+rem grid!.clear()
 rem -----------------------
 
 wnd!.setCallback(BBjAPI.ON_CLOSE,"byebye")
 rem wnd!.setCallback(BBjAPI.ON_RESIZE,"resize")
 rem grid!.setCallback(BBjAPI.ON_GRID_SELECT_ROW,"on_grid_select")
 
+limited! = 0
 process_events
 
+CH:
+    if grid!.getHasColumnHeader() then
+        grid!.setHasColumnHeader(0)
+    else 
+        grid!.setHasColumnHeader(1)
+    endif
+return
+
+RH:
+    if grid!.getHasRowHeader() then 
+        grid!.setHasRowHeader(0)
+    else 
+        grid!.setHasRowHeader(1)
+    endif
+return
+
+limit:
+    if !limited! then 
+        grid!.fillGridWithColumns(4)
+        limited! = 1
+    else
+        limited! = 0
+        grid!.fillGridWithColumns(12)
+    endif
+return
+
+clear:
+    grid!.clear()
+return
+
+tooltips:
+    grid!.setToolTipText("Grid Tool Tip")
+    grid!.setToolTipText(2,"Different Column Tool Tip Text")
+    grid!.getColumnHeader().setToolTipText("Header Tooltip")
+    grid!.getColumnHeader().setToolTipText(3,"Different Header Tooltip")
+    grid!.getRowHeader().setToolTipText("Row Header Tooltip")
+return
+
+colors:
+    grid!.setMainGridBackColor(BBjAPI().makeColor(65,65,65))
+    grid!.setMainGridForeColor(BBjAPI().makeColor(255,255,255))
+
+    grid!.setColumnBackColor(0,BBjAPI().makeColor(114,114,114))
+    grid!.setColumnBackColor(2,BBjAPI().makeColor(114,114,114))
+    grid!.setColumnBackColor(4,BBjAPI().makeColor(114,114,114))
+    grid!.setColumnBackColor(6,BBjAPI().makeColor(114,114,114))
+    grid!.setColumnBackColor(8,BBjAPI().makeColor(114,114,114))
+    grid!.setColumnBackColor(10,BBjAPI().makeColor(114,114,114))
+
+    grid!.setColumnHeaderBackColor(BBjAPI().makeColor(65,65,65))
+    grid!.setColumnHeaderForeColor(BBjAPI().makeColor(255,255,255))
+
+    cHeader! = grid!.getColumnHeader()
+
+    cHeader!.setCellBackColor(0,BBjAPI().makeColor(114,114,114))
+    cHeader!.setCellBackColor(2,BBjAPI().makeColor(114,114,114))
+    cHeader!.setCellBackColor(4,BBjAPI().makeColor(114,114,114))
+    cHeader!.setCellBackColor(6,BBjAPI().makeColor(114,114,114))
+    cHeader!.setCellBackColor(8,BBjAPI().makeColor(114,114,114))
+    cHeader!.setCellBackColor(10,BBjAPI().makeColor(114,114,114))
+
+    grid!.setRowHeaderForeColor(BBjAPI().makeColor(255,255,255))
+    grid!.setRowHeaderBackColor(BBjAPI().makeColor(65,65,65))
+return
+
+headerTexts:
+    declare BBjVector vec!
+    vec! = new BBjVector() 
+
+
+    vec!.add("ID's")
+    vec!.add("Songs")
+    vec!.add("Artists")
+    vec!.add("Album")
+
+    grid!.setColumnHeaderText(vec!)
+
+    vec!.clear()
+
+    for i = 1 to 47
+        vec!.add(str(i))
+    next i 
+
+    grid!.setRowHeaderText(vec!)
+
+return
 
 on_grid_select:
     ev! = BBjAPI().getLastEvent()
