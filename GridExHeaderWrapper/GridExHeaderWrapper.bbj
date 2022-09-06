@@ -1,5 +1,5 @@
-use ::GridExColumnHeader.bbj::GridExColumnHeader
-use ::GridExRowHeader.bbj::GridExRowHeader
+use ::GridExHeaderWrapper/GridExColumnHeader.bbj::GridExColumnHeader
+use ::GridExHeaderWrapper/GridExRowHeader.bbj::GridExRowHeader
 
 use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
 use ::BBjGridExWidget/GxColumns.bbj::GxColumn

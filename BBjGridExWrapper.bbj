@@ -9,7 +9,7 @@ use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
 use ::BBjGridExWidget/GxColumns.bbj::GxDefaultColumnDefinition
 use ::BBjGridExWidget/GxColumns.bbj::GxColumn
 
-use ::GridExHeaderWrapper.bbj::GridExHeaderWrapper
+use ::GridExHeaderWrapper/GridExHeaderWrapper.bbj::GridExHeaderWrapper
 use ::Util.bbj::Util
 
 class public BBjGridExWrapper
@@ -17,8 +17,8 @@ class public BBjGridExWrapper
     field private BBjGridExWidget gridex!
     field private ResultSet rs! = new ResultSet()
     field private DataRow rec! = new DataRow()
-    field private BBjNumber rows! = 0
-    field private BBjNumber columns! = 0
+    field private BBjNumber rows! = 1
+    field private BBjNumber columns! = 10
 
     rem Header
     field private GridExHeaderWrapper cHeader!
@@ -30,10 +30,16 @@ class public BBjGridExWrapper
     field private HashMap tooltip! = new HashMap()
     field private HashMap backColor! = new HashMap()
     field private HashMap foreColor! = new HashMap()
+    field private HashMap columnAlignment! = new HashMap()
     field private ArrayList columnIndizes! = new ArrayList()
 
     field private BBjVector hiddenColumns! = new BBjVector()
     field private ArrayList hiddenRows! = new ArrayList()
+
+    rem Constants
+    field public static BBjNumber GRID_ALIGN_CENTER = BBjGridExWidget.GRID_ALIGN_CENTER()
+    field public static BBjNumber GRID_ALIGN_LEFT = BBjGridExWidget.GRID_ALIGN_LEFT()
+    field public static BBjNumber GRID_ALIGN_RIGHT = BBjGridExWidget.GRID_ALIGN_RIGHT()
 
     rem Callbacks
     field public static BBjNumber ON_GRID_DOUBLE_CLICK = 1
@@ -41,10 +47,11 @@ class public BBjGridExWrapper
     method private BBjGridExWrapper()
     methodend
     
-    method public BBjGridExWrapper(BBjGridExWidget theGrid!)
-        #gridex! = theGrid!
+    method public BBjGridExWrapper(BBjWindow wnd!, BBjNumber id!, BBjNumber x!, BBjNumber y!, BBjNumber w!, BBjNumber h!)
+        #gridex! = new BBjGridExWidget(wnd!,id!,x!,y!,w!,h!)
         #cHeader! = new GridExHeaderWrapper(#gridex!,0)
         #rHeader! = new GridExHeaderWrapper(#gridex!,1)
+        #checkAndAdjustDimension()
     methodend
 
     method public void fillGridWithColumns(int columns!)
@@ -76,18 +83,49 @@ class public BBjGridExWrapper
     rem -----------------------
     
     method private void checkAndAdjustDimension()
-        if #rec!.getColumnCount() < #columns! then
+        declare Boolean updateRs!
+        declare Boolean columnsIncreased!
+
+        updateRs! = 0
+        columnsIncreased! = 0
+
+        diff! = #rec!.getColumnCount() - #columns!
+        if diff! < 0 then 
+            columnsIncreased! = 1
+            diff! = diff! * -1
+        endif
+
+        if #rec!.getColumnCount() <> #columns! then
             #rec! = new DataRow()
-            for i=0 to #columns!-1
+            #columnIndizes!.clear()
+            updateRs! = 1
+            for i=0 to #columns! -1
                 columnKey! = "C" + str(i)
                 #rec!.setFieldValue(columnKey!,"")
                 #columnIndizes!.add(columnKey!)
             next i
         endif
 
+        if updateRs! and #rs!.size() > 0 then
+            for i = 0 to #rs!.size() -1
+                dr! = #rs!.get(i)
+                for x = 1 to diff!
+                    if columnsIncreased! then
+                        field! = "C" + str(dr!.getColumnCount() + 1)
+                        dr!.setFieldValue(field!,"")
+                        #rec!.setFieldValue(field!,"")
+                    else
+                        field! = "C" + str(dr!.getColumnCount() - 1)
+                        dr!.removeField(field!)
+                        #rec!.removeField(field!)
+                    endif
+                next x
+            next i
+        endif
+
         if #rs!.size()>#rows! then
             for i=#rows! to #rs!.size()-1
-                #rs!.remove(#rs!.size())
+                #rs!.remove(#rs!.size()-1)
             next i
         else
             i = #rs!.size()
@@ -98,11 +136,10 @@ class public BBjGridExWrapper
                 #rs!.add(dr!)
             wend
         endif
+        #gridex!.buildColumnsFromResultSet(#rs!,1)
+        #gridex!.setRS(#rs!)
+        rem #gridex!.setData(#rs!)
     methodend
-    
-    rem -----------------------
-    rem  DEAD API
-    rem -----------------------
 
     method public Boolean getDragAccept()
         methodret 0
@@ -600,7 +637,8 @@ class public BBjGridExWrapper
     methodend
 
     method public int getColumnAlignment(int column!)
-        methodret -1
+        cname! = str(#columnIndizes!.get(column!))
+        methodret cast(BBjNumber,#columnAlignment!.get(cname!))
     methodend
 
     method public int getColumnVerticalAlignment(int column!)
@@ -643,6 +681,13 @@ class public BBjGridExWrapper
     methodend
     
     method public void setColumnAlignment(int column!, int align!)
+        cname! = str(#columnIndizes!.get(column!))
+        gridColumn! = #gridex!.getColumn(cname!)
+        
+        #columnAlignment!.put(cname!,align!)
+
+        gridColumn!.setAlignment(align!)
+        #gridex!.updateColumns()
     methodend
 
     method public void setColumnVerticalAlignment(int column!, int align!)
@@ -1289,7 +1334,6 @@ rem         escape
     methodend
 
     method public void setCellText(BBjNumber row!, BBjNumber col!, BBjString text!)
-        #checkAndAdjustDimension()    
         dr! = #rs!.get(row!)
 
         for i = 0 to dr!.getColumnCount() -1
@@ -1302,7 +1346,6 @@ rem         escape
     methodend
 
     method public void setCellText(BBjNumber row!, BBjNumber col!, BBjVector v!)
-        #checkAndAdjustDimension()
         r!=row!
         c!=col!
         it! = v!.iterator()
@@ -1324,10 +1367,12 @@ rem         escape
 
     method public void setNumColumns(int columns!)
         #columns! = columns!
+        #checkAndAdjustDimension()
     methodend
 
     method public void setNumRows(int rows!)
         #rows! = rows!
+        #checkAndAdjustDimension()
     methodend
 
     method public void setUserResizable(int resize!)
@@ -1691,8 +1736,9 @@ rem         escape
             endif      
             #cHeader!.setCellText(i,"")  
         next i
-        #gridex!.clearData()
-        #gridex!.clearColumnDefinitions()
+        rem #gridex!.clearData()
+        #gridex!.getColumnsManager().resetAllColumns()
+        rem #gridex!.clearColumnDefinitions()
     methodend
 
     method public void clear(int row!, int column!)

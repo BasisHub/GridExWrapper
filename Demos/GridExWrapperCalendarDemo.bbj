@@ -1,4 +1,3 @@
-use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
 use ::BBjGridExWrapper.bbj::BBjGridExWrapper
 REM Create a calendar using a BBjGrid object
 
@@ -222,8 +221,7 @@ REM Create the main window
 LET MainWindow! = mySysGui!.addWindow(100,100,480,260,TITLE$,$00010013$)
 
 REM Add the calender (grid) to the main window
-LET gridex! = new BBjGridExWidget(MainWindow!,1002,10,25,460,225)
-LET Calendar! = new BBjGridExWrapper(gridex!)
+LET Calendar! = new BBjGridExWrapper(MainWindow!,1002,10,25,460,225)
 rem LET Calendar! = MainWindow!.addGrid(grdCalendar,3,26,178,151)
 
 REM Set the attributes of the grid
@@ -245,7 +243,7 @@ Calendar!.setCellText(0,0,"")
 REM Set the attributes for the grid's columns
 FOR COL = 0 TO 6
       Calendar!.setColumnWidth(COL,65)
-      Calendar!.setColumnAlignment(Col,BBjGridExWidget.GRID_ALIGN_RIGHT)
+      Calendar!.setColumnAlignment(Col,BBjGridExWrapper.GRID_ALIGN_RIGHT)
       Calendar!.setColumnForeColor(COL, blueColor!)
 NEXT COL
 

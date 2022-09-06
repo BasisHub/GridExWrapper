@@ -1,12 +1,8 @@
-use ::BBjGridExWidget/BBjGridExWidget.bbj::BBjGridExWidget
-
 use ::BBjGridExWrapper.bbj::BBjGridExWrapper
 
 wnd! = BBjAPI().openSysGui("X0").addWindow(10,10,1000,800,"BBjGridExWidget")
 
-gridex! = new BBjGridExWidget(wnd!,100,10,10,980,500)
-
-grid! = new BBjGridExWrapper(gridex!)
+grid! = new BBjGridExWrapper(wnd!,100,10,10,980,500)
 
 rem selection! = wnd!.addStaticText(101,10,530,400,30,"")
 
