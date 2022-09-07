@@ -17,8 +17,8 @@ class public BBjGridExWrapper
     field private BBjGridExWidget gridex!
     field private ResultSet rs! = new ResultSet()
     field private DataRow rec! = new DataRow()
-    field private BBjNumber rows! = 1
-    field private BBjNumber columns! = 10
+    field private BBjNumber rows!
+    field private BBjNumber columns!
 
     rem Header
     field private GridExHeaderWrapper cHeader!
@@ -31,6 +31,7 @@ class public BBjGridExWrapper
     field private HashMap backColor! = new HashMap()
     field private HashMap foreColor! = new HashMap()
     field private HashMap columnAlignment! = new HashMap()
+    field private HashMap eventMap! = new HashMap()
     field private ArrayList columnIndizes! = new ArrayList()
 
     field private BBjVector hiddenColumns! = new BBjVector()
@@ -42,15 +43,21 @@ class public BBjGridExWrapper
     field public static BBjNumber GRID_ALIGN_RIGHT = BBjGridExWidget.GRID_ALIGN_RIGHT()
 
     rem Callbacks
-    field public static BBjNumber ON_GRID_DOUBLE_CLICK = 1
+    field public static BBjNumber ON_GRID_DOUBLE_CLICK = BBjGridExWidget.ON_GRID_DOUBLE_CLICK()
 
     method private BBjGridExWrapper()
     methodend
     
     method public BBjGridExWrapper(BBjWindow wnd!, BBjNumber id!, BBjNumber x!, BBjNumber y!, BBjNumber w!, BBjNumber h!)
+        #this!(wnd!,id!,x!,y!,w!,h!,1,1)
+    methodend
+
+    method public BBjGridExWrapper(BBjWindow wnd!, BBjNumber id!, BBjNumber x!, BBjNumber y!, BBjNumber w!, BBjNumber h!, BBjNumber rows! , BBjNumber columns!)
         #gridex! = new BBjGridExWidget(wnd!,id!,x!,y!,w!,h!)
         #cHeader! = new GridExHeaderWrapper(#gridex!,0)
         #rHeader! = new GridExHeaderWrapper(#gridex!,1)
+        #rows! = rows!
+        #columns! = columns!
         #checkAndAdjustDimension()
     methodend
 
@@ -94,7 +101,7 @@ class public BBjGridExWrapper
             columnsIncreased! = 1
             diff! = diff! * -1
         endif
-
+        
         if #rec!.getColumnCount() <> #columns! then
             #rec! = new DataRow()
             #columnIndizes!.clear()
@@ -107,15 +114,32 @@ class public BBjGridExWrapper
         endif
 
         if updateRs! and #rs!.size() > 0 then
+            rem we would only need the lower part if the components would work
+            if !columnsIncreased! then
+                dr! = #rs!.get(0)
+                start! = dr!.getColumnCount() -1
+                end! = start! - diff! + 1
+
+                for x = start! to end! step -1 
+                    name! = "C" + str(x)
+                    #rs!.removeColumn(name!)
+                next x
+            endif
+
             for i = 0 to #rs!.size() -1
                 dr! = #rs!.get(i)
-                for x = 1 to diff!
+                for x = 0 to diff! -1
                     if columnsIncreased! then
-                        field! = "C" + str(dr!.getColumnCount() + 1)
+                        field! = "C" + str(dr!.getColumnCount())
                         dr!.setFieldValue(field!,"")
                         #rec!.setFieldValue(field!,"")
-                    else
+                        rem we do this here because the user might call methods
+                        rem to style or change to column bevor the grid created it
+                        #gridex!.addColumn(field!,"")
+                    endif
+                    if !columnsIncreased! then
                         field! = "C" + str(dr!.getColumnCount() - 1)
+                        #gridex!.removeColumn(field!)
                         dr!.removeField(field!)
                         #rec!.removeField(field!)
                     endif
@@ -136,9 +160,7 @@ class public BBjGridExWrapper
                 #rs!.add(dr!)
             wend
         endif
-        #gridex!.buildColumnsFromResultSet(#rs!,1)
-        #gridex!.setRS(#rs!)
-        rem #gridex!.setData(#rs!)
+        #gridex!.setData(#rs!)
     methodend
 
     method public Boolean getDragAccept()
@@ -223,7 +245,7 @@ class public BBjGridExWrapper
     methodend
 
     method public int getColumnHeaderHeight()
-        methodret 0
+        methodret #gridex!.getOptions().getHeaderHeight()
     methodend
 
     method public int getRowGutter()
@@ -234,7 +256,7 @@ class public BBjGridExWrapper
     methodend
 
     method public void setColumnHeaderHeight(int height!)
-        rem TODO
+        #gridex!.getOptions().setHeaderHeight(height!)
     methodend
 
     method public void setRowGutter(int gutter!)
@@ -749,11 +771,11 @@ class public BBjGridExWrapper
     methodend
 
     method public int getSelectedRow()
-        methodret 0
+        methodret #gridex!.getSelectedRow().getIndex()
     methodend
 
     method public BBjVector getSelectedRows()
-        methodret null()
+        methodret #gridex!.getSelectedRows()
     methodend
 
     method public int getSelectionMode()
@@ -822,9 +844,11 @@ class public BBjGridExWrapper
     methodend
 
     method public void setSelectedRow(int row!)
+        #gridex!.setSelectedRow(row!)
     methodend
 
     method public void setSelectedRows(BBjVector selection!)
+        #gridex!.setSelectedRows(selection!)
     methodend
 
     method public void setSelectionMode(int mode!)
@@ -1736,16 +1760,16 @@ rem         escape
             endif      
             #cHeader!.setCellText(i,"")  
         next i
-        rem #gridex!.clearData()
-        #gridex!.getColumnsManager().resetAllColumns()
-        rem #gridex!.clearColumnDefinitions()
+        #gridex!.clearData()
+        #gridex!.clearColumnDefinitions()
     methodend
 
     method public void clear(int row!, int column!)
     methodend
 
     method public void clearGrid()
-        #clear()
+        #gridex!.clearData()
+        #checkAndAdjustDimension()
     methodend
 
     method public void clearImage()
@@ -2164,4 +2188,50 @@ rem         escape
 
     method public void undoRowEdit()
     methodend
+
+    rem not needed when i extend the control interface
+    method public void setCallback(int p_eventType!, String p_callback!)
+        #callbackWrapper(p_eventType!,null(),p_callback!)
+    methodend
+
+    method public void setCallback(int p_eventType!, CustomObject p_snippetSetInstance!, String p_method!) 
+        #callbackWrapper(p_eventType!,p_snippetSetInstance!,p_method!)
+    methodend
+
+    method private void callbackWrapper(int type!, CustomObject obj!, String name!)
+        switch(type!)
+            case #ON_GRID_DOUBLE_CLICK
+                #gridex!.setCallback(type!,#this!,"CBH_GRID_DOUBLE_CLICK")
+                #cbHelper(type!,obj!,name!)
+                #eventMap!.put(#ON_GRID_DOUBLE_CLICK,obj!)
+            break
+
+            case default
+                throw "unknown event" , 404 
+            break
+        swend
+    methodend
+
+    method private void cbHelper(int type!, CustomObject obj!, String name!)
+        evName! = str(#this!) + str(type!)
+        
+        if obj! = null() then 
+            BBjAPI().setCustomEventCallback(evName!,name!)
+        else
+            BBjAPI().setCustomEventCallback(evName!,obj!,name!)
+        endif
+    methodend
+
+    method public void CBH_GRID_DOUBLE_CLICK(BBjCustomEvent event!)
+        declare auto CustomObject obj!
+
+        obj! = #eventMap!.get(#ON_GRID_DOUBLE_CLICK)
+        rem TODO create real payload
+        #fireEvent(#ON_GRID_DOUBLE_CLICK,obj!,"test")
+    methodend
+
+    method private void fireEvent(int type!, CustomObject object!, Object payload!)
+        BBjAPI().postPriorityCustomEvent(str(#this!) + str(type!),payload!)
+    methodend
+
 classend

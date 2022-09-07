@@ -1,6 +1,7 @@
 use ::BBjGridExWrapper.bbj::BBjGridExWrapper
 
 selector! = new FileMaintenance()
+
 process_events
 
 class public FileMaintenance
@@ -24,6 +25,7 @@ class public FileMaintenance
         #bClose!.setCallback(#bClose!.ON_BUTTON_PUSH,#this!,"cb_closepressed")
         
         rem #sfdGrid! = #mainWin!.addGrid(#mainWin!.getAvailableControlID(),14,112,525,236,$8980$,9,4)
+        rem #sfdGrid! = new BBjGridExWrapper(#mainWin!,#mainWin!.getAvailableControlID(),14,112,525,236,5,4)
         #sfdGrid! = new BBjGridExWrapper(#mainWin!,#mainWin!.getAvailableControlID(),14,112,525,236)
         #sfdGrid!.setNumColumns(4)
         #sfdGrid!.setShouldHighlightSelectedRow(1)
@@ -33,18 +35,20 @@ class public FileMaintenance
         #headers!.addItem("ARTIST")
         #headers!.addItem("TITLE")
         #headers!.addItem("LABEL")
-        
+    
         #sfdGrid!.setColumnWidth(0,100)
         #sfdGrid!.setColumnWidth(1,100)
         #sfdGrid!.setColumnWidth(2,100)
         #sfdGrid!.setColumnWidth(3,100)
-        
+    
         #sfdGrid!.setHasColumnHeader(1)
         #sfdGrid!.setColumnHeaderHeight(25)
+        
         #sfdGrid!.setRowHeight(20)
         #sfdGrid!.setColumnAlignment(1,#sfdGrid!.GRID_ALIGN_LEFT)
         #sfdGrid!.setSelectedRow(0)
-        rem #sfdGrid!.setCallback(#sfdGrid!.ON_GRID_DOUBLE_CLICK,#this!,"cb_gridclicked")
+        
+        #sfdGrid!.setCallback(#sfdGrid!.ON_GRID_DOUBLE_CLICK,#this!,"cb_gridclicked")
         #populateGridData()
         
         #mainWin!.setVisible(1)
@@ -104,7 +108,7 @@ class public FileMaintenance
         release
     methodend
     
-    method public void cb_gridclicked(BBjGridDoubleClickEvent e!) 
+    method public void cb_gridclicked(BBjCustomEvent ev!) 
         #editRecord()
     methodend
 classend
