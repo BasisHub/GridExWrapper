@@ -1,0 +1,141 @@
+REM Create a data-aware BBjGrid object
+
+System.setProperty("java.io.tmpdir", "/private/tmp/")
+
+REM Obtain the instance of the BBjAPI object
+LET myAPI!=BBjAPI()
+
+REM Open the SysGui device
+SYSGUI=UNT
+OPEN (SYSGUI) "X0"
+
+REM Obtain the instance of the BBjSysGui object
+LET mySysGui!=myAPI!.getSysGui()
+
+REM Template for the customer data
+TMPL$="CUST_NUMBER:C(6),FIRST_NAME:C(10),LAST_NAME:C(10),COMPANY:C(20),ADDRESS:C(20),CITY:C(15),STATE:C(2),ZIP_CODE:C(5)"
+
+REM Create the customer data file
+GOSUB CreateDataFile
+
+REM Create the main window, initially invisible
+myWindow! = mySysGui!.addWindow(100,100,650,230,"Data Aware Grid",$00000012$)
+
+REM Open the data file
+LET DATACHAN=UNT
+OPEN (DATACHAN) "BBjDAGrid.dat"
+
+REM Create the grid
+BBjGrid!=MyWindow!.addDataAwareGrid(500,10,10,600,190,DATACHAN,TMPL$)
+
+REM Setup the grid
+GOSUB SetupGrid
+
+REM Make the window visible
+myWindow!.setVisible(mySysGui!.TRUE)
+
+REM Register callback routines
+CALLBACK(ON_CLOSE,EXIT_PROGRAM,mySysGui!.getContext())
+
+REM Process Events
+PROCESS_EVENTS
+
+REM Callback routine that is called upon user exit
+EXIT_PROGRAM:
+RELEASE
+
+
+REM Routine to create the customer data file
+CreateDataFile:
+
+REM Create array to hold customer information
+NUM_OF_CUSTOMERS=10
+NUM_OF_FIELDS=8
+DIM CUST_ARRAY$[NUM_OF_CUSTOMERS,NUM_OF_FIELDS]
+CUST_ARRAY$[0,0]="000001",CUST_ARRAY$[0,1]="Brian",CUST_ARRAY$[0,2]="Johnson"
+CUST_ARRAY$[0,3]="Basis International",CUST_ARRAY$[0,4]="5901 Jefferson"
+CUST_ARRAY$[0,5]="Albuquerque",CUST_ARRAY$[0,6]="NM",CUST_ARRAY$[0,7]="87109"
+CUST_ARRAY$[1,0]="000002",CUST_ARRAY$[1,1]="Rosalie",CUST_ARRAY$[1,2]="Ortega"
+CUST_ARRAY$[1,3]="MOPS",CUST_ARRAY$[1,4]="103 Main Street"
+CUST_ARRAY$[1,5]="Las Cruces",CUST_ARRAY$[1,6]="NM",CUST_ARRAY$[1,7]="88113"
+CUST_ARRAY$[2,0]="000003",CUST_ARRAY$[2,1]="Neal",CUST_ARRAY$[2,2]="Smith"
+CUST_ARRAY$[2,3]="Intel",CUST_ARRAY$[2,4]="6750 Wyoming"
+CUST_ARRAY$[2,5]="Albuquerque",CUST_ARRAY$[2,6]="NM",CUST_ARRAY$[2,7]="87114"
+CUST_ARRAY$[3,0]="000004",CUST_ARRAY$[3,1]="Pat",CUST_ARRAY$[3,2]="Correl"
+CUST_ARRAY$[3,3]="R&J Construction",CUST_ARRAY$[3,4]="5466 Corrales"
+CUST_ARRAY$[3,5]="Albuquerque",CUST_ARRAY$[3,6]="NM",CUST_ARRAY$[3,7]="87110"
+CUST_ARRAY$[4,0]="000005",CUST_ARRAY$[4,1]="Laura",CUST_ARRAY$[4,2]="Thompson"
+CUST_ARRAY$[4,3]="B&F Associates",CUST_ARRAY$[4,4]="23211 Greene"
+CUST_ARRAY$[4,5]="Las Vegas",CUST_ARRAY$[4,6]="NV",CUST_ARRAY$[4,7]="87670"
+CUST_ARRAY$[5,0]="000006",CUST_ARRAY$[5,1]="Kevin",CUST_ARRAY$[5,2]="Brown"
+CUST_ARRAY$[5,3]="High Finance",CUST_ARRAY$[5,4]="12311 Money Way"
+CUST_ARRAY$[5,5]="Portland",CUST_ARRAY$[5,6]="OR",CUST_ARRAY$[5,7]="23490"
+CUST_ARRAY$[6,0]="000007",CUST_ARRAY$[6,1]="Jeff",CUST_ARRAY$[6,2]="Carson"
+CUST_ARRAY$[6,3]="CMGI",CUST_ARRAY$[6,4]="3212 Charger Trail"
+CUST_ARRAY$[6,5]="West Palm Beach",CUST_ARRAY$[6,6]="FL",CUST_ARRAY$[6,7]="43651"
+CUST_ARRAY$[7,0]="000008",CUST_ARRAY$[7,1]="Jane",CUST_ARRAY$[7,2]="Kytel"
+CUST_ARRAY$[7,3]="BEOS",CUST_ARRAY$[7,4]="6634 Dogwood"
+CUST_ARRAY$[7,5]="Springdale",CUST_ARRAY$[7,6]="AK",CUST_ARRAY$[7,7]="65211"
+CUST_ARRAY$[8,0]="000009",CUST_ARRAY$[8,1]="Laurence",CUST_ARRAY$[8,2]="Olivia"
+CUST_ARRAY$[8,3]="Old Timers",CUST_ARRAY$[8,4]="1245 Golf Course"
+CUST_ARRAY$[8,5]="Tulsa",CUST_ARRAY$[8,6]="OK",CUST_ARRAY$[8,7]="35213"
+CUST_ARRAY$[9,0]="000010",CUST_ARRAY$[9,1]="Paul",CUST_ARRAY$[9,2]="Talbot"
+CUST_ARRAY$[9,3]="Courier",CUST_ARRAY$[9,4]="3433 Font Way"
+CUST_ARRAY$[9,5]="Dayton",CUST_ARRAY$[9,6]="OH",CUST_ARRAY$[9,7]="98812"
+
+REM Create the data file
+ERASE "BBjDAGrid.dat",ERR=CREATE_FILE
+CREATE_FILE:
+MKEYED "BBjDAGrid.dat",[1:1:6],20,150
+LET DATACHAN=UNT
+OPEN (DATACHAN) "BBjDAGrid.dat"
+DIM REC$:TMPL$
+FOR CUST_NUM = 0 TO NUM_OF_CUSTOMERS - 1
+   FOR FIELD_NUM = 0 TO NUM_OF_FIELDS - 1
+   SWITCH FIELD_NUM
+      CASE 0
+         REC.CUST_NUMBER$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 1
+         REC.FIRST_NAME$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 2
+         REC.LAST_NAME$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 3
+         REC.COMPANY$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 4
+         REC.ADDRESS$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 5
+         REC.CITY$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 6
+         REC.STATE$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      CASE 7
+         REC.ZIP_CODE$=CUST_ARRAY$[CUST_NUM,FIELD_NUM]
+      BREAK
+      SWEND
+    NEXT FIELD_NUM
+    WRITE RECORD (DATACHAN) REC$
+NEXT CUST_NUM
+CLOSE (DATACHAN)
+
+RETURN
+
+
+REM Routine to setup the grid
+SetupGrid:
+
+REM Set the grid attributes
+BBjGrid!.setHorizontalScrollable(mySysGui!.TRUE)
+BBjGrid!.setVerticalScrollable(mySysGui!.TRUE)
+BBjGrid!.setDefaultColumnWidth(110)
+BBjGrid!.setScrollUpdate(mySysGui!.TRUE)
+BBjGrid!.setDefaultAlignment(mySysGui!.GRID_ALIGN_LEFT)
+BBjGrid!.setHasColumnHeader(mySysGui!.TRUE)
+BBjGrid!.setDefaultAlignment(mySysGui!.GRID_ALIGN_LEFT)
+
+RETURN
