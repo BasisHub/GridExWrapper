@@ -163,6 +163,46 @@ class public BBjGridExWrapper
         #gridex!.setData(#rs!)
     methodend
 
+    method public void loadDataFromChannel(BBjNumber channel!,BBjString template!)
+        dim tpls$:template!
+        declare ResultSet rs!
+        rs! = new ResultSet()
+
+        rem get the first key
+        ch = channel!
+        key$ = keyf(ch) 
+
+        while (1)
+            extract record(ch,KEY=KEY$) tpls$
+            rs!.add(DataRow.fromTemplate(template!,tpls$))
+            key$ = keyn(ch,END=eof)
+        wend
+
+        eof:
+        if (rs!.isEmpty()) then methodret
+        #rows! = rs!.size()
+        #columns! = rs!.get(0).getColumnCount()
+        #checkAndAdjustDimension()
+
+        for i = 0 to rs!.size() -1
+            declare DataRow localDr!
+            declare DataRow globalDr!
+
+            localDr! = rs!.get(i)
+            globalDr! = #rs!.get(i)
+  
+            for x = 0 to localDr!.getColumnCount() -1 
+                columnName! = localDr!.getColumnName(x)
+                value! = str(localDr!.getFieldValue(columnName!))
+                globalDr!.setFieldValue("C" + str(x), value!.trim())
+                if i = 0 then 
+                    rem we only need to set the column Header labels once 
+                    #setColumnHeaderCellText(x,columnName!)
+                endif
+            next x
+        next i 
+    methodend
+
     method public Boolean getDragAccept()
         methodret 0
     methodend
@@ -451,6 +491,9 @@ class public BBjGridExWrapper
     methodend
 
     method public void setDefaultColumnWidth(int width!)
+        for i = 0 to #columns! -1 
+            #setColumnWidth(i, width!)
+        next i
     methodend
 
     method public void setFitToGrid(int fit!)
@@ -2232,6 +2275,10 @@ rem         escape
 
     method private void fireEvent(int type!, CustomObject object!, Object payload!)
         BBjAPI().postPriorityCustomEvent(str(#this!) + str(type!),payload!)
+    methodend
+
+    method public BBjGridExWidget getGridExWidget()
+        methodret #gridex!
     methodend
 
 classend
