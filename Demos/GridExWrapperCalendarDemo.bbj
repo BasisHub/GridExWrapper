@@ -218,11 +218,12 @@ LET CalendarContext=mySysGui!.getAvailableContext()
 mySysGui!.setContext(CalendarContext)
 
 REM Create the main window
-LET MainWindow! = mySysGui!.addWindow(100,100,480,260,TITLE$,$00010013$)
+LET MainWindow! = mySysGui!.addWindow(100,100,182,180,TITLE$,$00010013$)
 
 REM Add the calender (grid) to the main window
-LET Calendar! = new BBjGridExWrapper(MainWindow!,1002,10,25,460,225)
+LET Calendar! = new BBjGridExWrapper(MainWindow!,1002,3,26,178,151)
 rem LET Calendar! = MainWindow!.addGrid(grdCalendar,3,26,178,151)
+gosub applyTheme
 
 REM Set the attributes of the grid
 Calendar!.setGridEditable(); rem this used to be setGridEditable(1)
@@ -242,8 +243,8 @@ Calendar!.setCellText(0,0,"")
 
 REM Set the attributes for the grid's columns
 FOR COL = 0 TO 6
-      Calendar!.setColumnWidth(COL,65)
-      Calendar!.setColumnAlignment(Col,BBjGridExWrapper.GRID_ALIGN_RIGHT)
+      Calendar!.setColumnWidth(COL,25)
+      Calendar!.setColumnAlignment(Col,BBjGridExWrapper.GRID_ALIGN_CENTER)
       Calendar!.setColumnForeColor(COL, blueColor!)
 NEXT COL
 
@@ -279,3 +280,130 @@ DIM GENERIC$:NOTICETPL(0,0)
 DIM EVENT$:TMPL(SYSGUI)
 
 RETURN
+
+applyTheme:
+      rem USE Statement
+      use com.google.gson.JsonObject
+
+      rem Default heights
+      columnHeaderHeight = 20
+      rowHeight = 17
+      
+      grid! = Calendar!.getGridExWidget()
+      grid!.getOptions().setEnableFilter(0)
+      
+      rem The BBjTheme is based off of the balham theme
+      grid!.setTheme("balham")
+
+      rem Root
+      css! = new JsonObject(); css!.addProperty("border-width","0 !important"); grid!.addStyle(".ag-theme-balham .ag-root", css!)
+
+      rem Header and normal cell padding
+      css! = new JsonObject(); css!.addProperty("padding","0 5px !important"); grid!.addStyle(".ag-theme-balham .ag-header-cell, .ag-theme-balham .ag-cell", css!)
+
+      rem Header Row
+      css! = new JsonObject()
+      css!.addProperty("background-color", "#DFE5EB"); css!.addProperty("color", "#262626")
+      css!.addProperty("background", "linear-gradient(to bottom, #f4f4f4 0, #eaeaea 49%, #e2e2e2 50%, #e8e8e8 98%, #efefef 100%)")
+      css!.addProperty("font-family", "Microsoft Sans Serif, Arial, Sans-serif")
+      css!.addProperty("font-size", "11px"); css!.addProperty("font-weight", "500")
+      css!.addProperty("text-shadow", "0 1px 1px rgba(255,255,255,.9)")
+      css!.addProperty("height","100% !important")
+      grid!.addStyle(".ag-theme-balham .ag-header-row", css!)
+
+      rem Header heights
+      lineH = max(columnHeaderHeight+1, int(columnHeaderHeight*1.1))
+      css! = new JsonObject()
+      css!.addProperty("height", str(columnHeaderHeight) + "px !important")
+      css!.addProperty("min-height", str(columnHeaderHeight-1)+"px !important")
+      grid!.addStyle(".ag-theme-balham .ag-header", css!)
+
+      css! = new JsonObject()
+      css!.addProperty("line-height",str(lineH)+"px")
+      grid!.addStyle(".ag-theme-balham .ag-header-row .ag-header-cell ", css!)
+
+      rem Header sorted indicator
+      css! = new JsonObject()
+      css!.addProperty("box-shadow", "inset 0 0 200px hsla(210, 100%, 50%, 0.15)")
+      css!.addProperty("border-left", "1px solid hsla(210, 100%, 50%, 0.25)")
+      css!.addProperty("border-right", "1px solid hsla(210, 100%, 50%, 0.25)")
+      grid!.addStyle(".ag-theme-balham .ag-sort-ascending-icon:not(.ag-hidden), .ag-theme-balham .ag-sort-descending-icon:not(.ag-hidden)", css!)
+
+      rem Column Header Sorted Icon
+      css! = new JsonObject()
+      css!.addProperty("height", "100% !important")
+      css!.addProperty("background-position-y", "bottom !important")
+      css!.addProperty("filter", "brightness(10%)")
+      css!.addProperty("opacity", "1")
+      grid!.addStyle(".ag-theme-balham .ag-sort-ascending-icon:not(.ag-hidden) .ag-icon.ag-icon-asc, .ag-theme-balham .ag-sort-descending-icon:not(.ag-hidden) .ag-icon.ag-icon-desc", css!)
+
+      rem Header border
+      css! = new JsonObject()
+      css!.addProperty("border-color","transparent !important")
+      grid!.addStyle(".ag-theme-balham .ag-header-cell:after, .ag-theme-balham .ag-header-group-cell:after", css!)
+
+      css! = new JsonObject()
+      css!.addProperty("border-right","1px solid #BDC3C7 !important")
+      grid!.addStyle(".ag-theme-balham .ag-header-cell, .ag-theme-balham .ag-header-group-cell", css!)
+
+      rem Row coloring
+      css! = new JsonObject()
+      css!.addProperty("background","#f5f7f9")
+      grid!.addStyle(".ag-theme-balham .ag-row.ag-row-even", css!)
+
+      css! = new JsonObject()
+      css!.addProperty("background","#fbfcfd")
+      grid!.addStyle(".ag-theme-balham .ag-row.ag-row-odd", css!)
+
+      css! = new JsonObject()
+      css!.addProperty("background","#4f7aa5")
+      css!.addProperty("color","#f7f9fc")
+      grid!.addStyle(".ag-theme-balham .ag-row-even.ag-row-selected", css!)
+
+      css! = new JsonObject() 
+      css!.addProperty("background","#527fac")
+      css!.addProperty("color","#f7f9fc")
+      grid!.addStyle(".ag-theme-balham .ag-row-odd.ag-row-selected", css!)
+
+      css! = new JsonObject()
+      css!.addProperty("box-shadow","inset 0 0 200px rgba(0, 0, 0, .05)") 
+      grid!.addStyle(".ag-theme-balham .ag-row:hover", css!)
+
+      rem Selected row - normal and hover
+      rem dont see any difference when  is this in or out
+      css! = new JsonObject(); css!.addProperty("border-color","#D9DCDE"); grid!.addStyle(".ag-theme-balham .ag-row.ag-row-selected", css!)
+      css! = new JsonObject(); css!.addProperty("border-color","#D9DCDE"); grid!.addStyle(".ag-theme-balham .ag-row.ag-row-selected.ag-row-focus", css!)
+      css! = new JsonObject(); css!.addProperty("border-color","#D9DCDE"); css!.addProperty("box-shadow","inset 0 0 200px rgba(0, 0, 0, .15)"); grid!.addStyle(".ag-theme-balham .ag-row.ag-row-selected.ag-row-hover", css!)
+
+      rem GUI Selected row color
+      if (info(3,6) <> "5")  AND (info(3,6) <> "6") then
+            css! = new JsonObject(); css!.addProperty("background","#0950D0"); css!.addProperty("color","#f7f9fc")
+            grid!.addStyle(".ag-theme-balham .ag-row-even.ag-row-selected", css!)
+            grid!.addStyle(".ag-theme-balham .ag-row-odd.ag-row-selected", css!)
+      endif
+
+      rem Top Row - fix vertical alignment
+      css! = new JsonObject(); css!.addProperty("padding-top","1px"); grid!.addStyle(".ag-theme-balham .ag-row.ag-row-first", css!)
+
+      rem Grid Cells and their borders 
+      grid!.setRowHeight(rowHeight)
+      lineH = max(rowHeight+1, int(rowHeight*1.1))
+      css! = new JsonObject()
+      css!.addProperty("font-size", "11px"); css!.addProperty("font-family", "Microsoft Sans Serif, Arial, Sans-serif")
+      css!.addProperty("line-height", str(lineH)+"px")
+      css!.addProperty("color", "#262626")
+      css!.addProperty("border-top-width", "0"); css!.addProperty("border-bottom-width", "0")
+      css!.addProperty("border-left-color","#D9DCDE !important")
+      grid!.addStyle(".ag-theme-balham .ag-cell.ag-cell-value", css!)
+
+      rem Selected cell text
+      css! = new JsonObject(); css!.addProperty("text-shadow","none"); css!.addProperty("border-color","D9DCDE"); css!.addProperty("color", "#f7f9fc"); grid!.addStyle(".ag-theme-balham .ag-row-selected .ag-cell", css!)
+
+      rem Selected cell border - disable outline
+      css! = new JsonObject(); css!.addProperty("border-color","transparent !important"); css!.addProperty("border-left-color","#D9DCDE !important"); grid!.addStyle(".ag-theme-balham .ag-cell.ag-cell-focus", css!)
+
+      rem Remove borders from column 0 cells (all cells define a left border of 1px)
+      rem sel$ = #getSelectorForCellByColumnIndex(0)
+      rem if (sel$ <> "") then css! = new JsonObject(); css!.addProperty("border-left-color", "transparent !important"); grid!.addStyle(sel$, css!)
+
+return

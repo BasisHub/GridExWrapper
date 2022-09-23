@@ -1,3 +1,4 @@
+use ::BBjGridExWrapper.bbj::BBjGridExWrapper
 REM Create a data-aware BBjGrid object
 
 REM Obtain the instance of the BBjAPI object
@@ -14,7 +15,7 @@ REM Template for the customer data
 TMPL$="CUST_NUMBER:C(6),FIRST_NAME:C(10),LAST_NAME:C(10),COMPANY:C(20),ADDRESS:C(20),CITY:C(15),STATE:C(2),ZIP_CODE:C(5)"
 
 REM Create the customer data file
-rem GOSUB CreateDataFile
+GOSUB CreateDataFile
 
 REM Create the main window, initially invisible
 myWindow! = mySysGui!.addWindow(100,100,650,230,"Data Aware Grid",$00000012$)
@@ -23,9 +24,10 @@ REM Open the data file
 LET DATACHAN=UNT
 OPEN (DATACHAN) "BBjDAGrid.dat"
 
-
 REM Create the grid
-BBjGrid!=MyWindow!.addDataAwareGrid(500,10,10,600,190,DATACHAN,TMPL$)
+BBjGrid! = new BBjGridExWrapper(myWindow!,500,10,10,600,190)
+BBjGrid!.loadDataFromChannel(DATACHAN,TMPL$)
+rem BBjGrid!=MyWindow!.addDataAwareGrid(500,10,10,600,190,DATACHAN,TMPL$)
 
 REM Setup the grid
 GOSUB SetupGrid
@@ -133,7 +135,6 @@ BBjGrid!.setHorizontalScrollable(mySysGui!.TRUE)
 BBjGrid!.setVerticalScrollable(mySysGui!.TRUE)
 BBjGrid!.setDefaultColumnWidth(110)
 BBjGrid!.setScrollUpdate(mySysGui!.TRUE)
-BBjGrid!.setDefaultAlignment(mySysGui!.GRID_ALIGN_LEFT)
 BBjGrid!.setHasColumnHeader(mySysGui!.TRUE)
 BBjGrid!.setDefaultAlignment(mySysGui!.GRID_ALIGN_LEFT)
 

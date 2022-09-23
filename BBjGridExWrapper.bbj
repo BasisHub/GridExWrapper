@@ -172,18 +172,21 @@ class public BBjGridExWrapper
         ch = channel!
         key$ = keyf(ch) 
 
+        rem get next key until end of file error and got to label
         while (1)
             extract record(ch,KEY=KEY$) tpls$
             rs!.add(DataRow.fromTemplate(template!,tpls$))
             key$ = keyn(ch,END=eof)
         wend
-
+        
+        rem we reached eof
         eof:
         if (rs!.isEmpty()) then methodret
         #rows! = rs!.size()
         #columns! = rs!.get(0).getColumnCount()
         #checkAndAdjustDimension()
 
+        rem moving the rs data to the #rs data
         for i = 0 to rs!.size() -1
             declare DataRow localDr!
             declare DataRow globalDr!
