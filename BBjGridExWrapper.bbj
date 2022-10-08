@@ -385,7 +385,7 @@ class public BBjGridExWrapper
 
     method public BBjGridData getRowData(int row!)
         methodret null()
-    methodret
+    methodend
 
     method public BBjGridData getRowData(int startRow!, int endRow!)
         methodret null()
@@ -615,7 +615,7 @@ class public BBjGridExWrapper
     method public void getColumnMask(int column!)
     methodend
 
-    method public Boolean getShowMaskWhenRendering()#
+    method public Boolean getShowMaskWhenRendering()
         methodret 0
     methodend
 
@@ -652,7 +652,7 @@ class public BBjGridExWrapper
 
     method public int isEditable()
         methodret -1
-    methodret
+    methodend
 
     method public Boolean isEditing()
         methodret 0
@@ -1269,7 +1269,7 @@ rem         escape
         methodret 0
     methodend
 
-    method public void setFocusable(Boolean focus)
+    method public void setFocusable(Boolean focus!)
     methodend
 
     rem -------
